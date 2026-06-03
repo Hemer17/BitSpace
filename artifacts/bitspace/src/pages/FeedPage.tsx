@@ -80,8 +80,8 @@ function PostCard({ post }: { post: any }) {
 }
 
 export default function FeedPage() {
-  const [filter, setFilter] = useState("all");
-  const { data: posts, isLoading } = useGetFeed({ type: filter !== "all" ? (filter as any) : undefined });
+  const [filter, setFilter] = useState<string>("all");
+  const { data: posts, isLoading } = useGetFeed({ type: filter !== "all" ? filter : undefined });
   const { data: summary } = useGetFeedSummary();
 
   const tabs = [
