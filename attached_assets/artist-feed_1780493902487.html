@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BitSpace Artist Feed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root{--bg:#0b0f1a;--surface:#141a2a;--surface-2:#1a2237;--surface-3:#0f1424;--text:#f5f7ff;--muted:#99a3c7;--line:rgba(255,255,255,.08);--primary:#6d5dfc;--primary-2:#8d80ff;--success:#25c281;--danger:#ff6b81;--shadow:0 18px 40px rgba(0,0,0,.28)}
+    *{box-sizing:border-box;margin:0;padding:0} body{font-family:'Inter',sans-serif;background:radial-gradient(circle at top left,rgba(109,93,252,.18),transparent 28%),radial-gradient(circle at bottom right,rgba(37,194,129,.08),transparent 24%),var(--bg);color:var(--text);min-height:100vh} a{text-decoration:none;color:inherit} button{font:inherit;border:0;background:none;color:inherit;cursor:pointer}
+    .app{display:grid;grid-template-columns:280px minmax(0,1fr) 320px;min-height:100vh;gap:24px;padding:24px}.sidebar,.rightbar,.post,.feed-top{background:rgba(20,26,42,.9);border:1px solid var(--line);box-shadow:var(--shadow);backdrop-filter:blur(12px)}
+    .sidebar,.rightbar{position:sticky;top:24px;height:calc(100vh - 48px);border-radius:28px}.sidebar{padding:24px 18px;display:flex;flex-direction:column;justify-content:space-between}.rightbar{padding:22px;display:grid;align-content:start;gap:18px}
+    .brand{display:flex;align-items:center;gap:12px;margin-bottom:28px}.brand-mark{width:46px;height:46px;border-radius:16px;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),#4b39f5);box-shadow:0 10px 22px rgba(109,93,252,.4);font-weight:800}.brand h1{font-size:20px}.brand span{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+    .menu{display:grid;gap:10px}.menu a,.profile-btn{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:16px;color:#dce3ff;transition:.25s ease}.menu a:hover,.profile-btn:hover,.menu a.active{background:rgba(109,93,252,.14);color:#fff}.menu .icon,.profile-btn .icon{width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;color:var(--primary-2)}
+.menu .icon svg,
+.profile-btn .icon svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.menu .icon svg,
+.profile-btn .icon svg {
+  stroke: currentColor;
+}
+    .profile-card,.tour-card,.ticket-card,.artist-chip{background:var(--surface-3);border:1px solid var(--line);border-radius:20px;padding:16px}.profile-card{display:grid;gap:14px}.me{display:flex;gap:12px;align-items:center}.avatar{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:linear-gradient(135deg,#2c3550,#171d31);border:1px solid rgba(255,255,255,.08);overflow:hidden;flex-shrink:0}.avatar img{width:100%;height:100%;object-fit:cover;display:block}.me small{color:var(--muted);display:block;margin-top:2px}.profile-btn{width:100%;justify-content:center;border:1px solid rgba(109,93,252,.25);background:rgba(109,93,252,.12);min-height:46px}
+    .center{display:grid;gap:18px;max-width:760px;width:100%;margin:0 auto}.feed-top{border-radius:28px;padding:22px;display:flex;align-items:center;justify-content:space-between;gap:20px}.feed-top h2{font-size:28px}.feed-top p{color:var(--muted);margin-top:6px}.pill{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:999px;background:rgba(109,93,252,.13);color:#e6e2ff;font-size:14px;white-space:nowrap}
+    .post{border-radius:28px;padding:22px;display:grid;gap:18px}.post-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}.artist{display:flex;align-items:center;gap:14px}.artist .avatar{width:56px;height:56px}.artist strong{font-size:17px;display:block}.artist span,.post-time{color:var(--muted);font-size:14px}.tag{font-size:12px;padding:7px 10px;border-radius:999px;background:rgba(37,194,129,.12);color:#8ce7be;border:1px solid rgba(37,194,129,.2)}.post p{color:#ebefff;line-height:1.7;font-size:15px}.post-media{background:linear-gradient(135deg,rgba(109,93,252,.22),rgba(255,255,255,.03));border-radius:22px;padding:18px;border:1px solid rgba(255,255,255,.06);display:grid;gap:14px}
+    .mini-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.mini-card{background:rgba(9,13,24,.55);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:14px}.mini-card small{color:var(--muted);display:block;margin-bottom:6px}.mini-card strong{font-size:15px}.post-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-top:4px}.action-btn{min-height:44px;padding:10px 16px;border-radius:999px;background:var(--surface-3);border:1px solid rgba(255,255,255,.07);display:inline-flex;align-items:center;gap:8px;color:#d6ddfb}.action-btn:hover{border-color:rgba(109,93,252,.35);transform:translateY(-1px)}.action-btn.liked{background:rgba(255,107,129,.12);color:#ffc0cb;border-color:rgba(255,107,129,.28)}
+    .comment-box{display:flex;gap:10px;align-items:center;background:var(--surface-3);border:1px solid rgba(255,255,255,.06);border-radius:18px;padding:10px}.comment-box input{flex:1;background:transparent;border:0;outline:0;color:#fff;font-size:14px}.send-btn{min-width:42px;min-height:42px;border-radius:12px;background:var(--primary);color:#fff}.comments{display:grid;gap:10px}.comment{padding:12px 14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:16px;color:#dfe5ff;font-size:14px}.comment small{color:var(--muted);display:block;margin-bottom:4px}
+    .section-title{font-size:15px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}.tour-card strong,.ticket-card strong{display:block;margin-bottom:8px}.tour-card p,.ticket-card p{color:var(--muted);font-size:14px}.artist-list{display:grid;gap:12px}.artist-chip{display:flex;align-items:center;justify-content:space-between;gap:10px}.artist-chip .left{display:flex;align-items:center;gap:10px}.followed{color:#9fe8c6;font-size:13px;padding:6px 10px;border-radius:999px;background:rgba(37,194,129,.1)}
+    .mobile-topbar{display:none;position:sticky;top:0;z-index:10;padding:16px;background:rgba(11,15,26,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)} .mobile-topbar .profile-btn{margin-top:12px}
+footer { text-align: center; padding: 30px; color: #9ea7c2; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 50px; }
+    @media (max-width:1180px){.app{grid-template-columns:250px minmax(0,1fr)}.rightbar{display:none}} @media (max-width:900px){.mobile-topbar{display:block}.app{grid-template-columns:1fr;padding:16px}.sidebar{display:none}.center{max-width:100%}.feed-top{flex-direction:column;align-items:flex-start}.mini-grid{grid-template-columns:1fr}}
+.brand-mark:has(img) {
+  background: none;
+  box-shadow: none;
+}
+  </style>
+</head>
+<body>
+  <div class="mobile-topbar">
+    <div class="brand"><div class="brand-mark"><img src="bitspaceLogoIconWhite.png" alt="BitSpace" style="width: 100%; height: auto;"></div><div><h1>BitSpace Feed</h1><span>Segui artisti, tour e uscite</span></div></div>
+    <a class="profile-btn" href="my-profile.html" aria-label="Apri il mio profilo"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4 20a8 8 0 0 1 16 0"/><path d="m16.5 6.5 1 1"/></svg></span>Il mio profilo</a>
+  </div>
+  <div class="app">
+    <aside class="sidebar">
+      <div>
+        <div class="brand"><div class="brand-mark"><img src="bitspaceLogoIconWhite.png" alt="BitSpace" style="width: 100%; height: auto;"></div><div><h1>BitSpace Feed</h1><span>Il social per fan e artisti</span></div></div>
+        <nav class="menu" aria-label="Navigazione laterale">
+          <a href="artist-feed.html" class="active"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></span>Feed</a>
+          <a href="followed-artists.html"><span class="icon"><svg viewBox="0 3 24 27" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="16" r="11"/><path d="m12 8 2.6 5.2L20 14l-4 3.9.9 5.1L12 20.2 7.1 23l.9-5.1L4 14l5.4-.8L12 8Z"/></svg></span>Artisti seguiti</a>
+          <a href="tour-stops.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 3v4"/><path d="M17 3v4"/><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18"/></svg></span>Tappe tour</a>
+          <a href="tickets.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18"/><path d="M7 3v4"/><path d="M17 3v4"/><rect x="3" y="5" width="18" height="16" rx="3"/><path d="m8 14 2 2 6-6"/></svg></span>Biglietti</a>
+          
+        </nav>
+      </div>
+
+
+
+<div class="profile-card">
+  <div class="me">
+    <div class="avatar">TU</div>
+    <div><strong>Luca Ferri</strong><small>Fan • Napoli • 12 artisti seguiti</small></div>
+  </div>
+  <a class="profile-btn" href="my-profile.html" aria-label="Apri il mio profilo">
+    <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"/><path d="M4 20a8 8 0 0 1 16 0"/><path d="m15 8 4-4"/></svg></span>Il mio profilo</a>
+  <!-- Nuovo posizionamento -->
+
+<a class="profile-btn" href="index.html"><span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6 3 12l6 6"/><path d="M3 12h12"/><path d="M21 19V5"/></svg></span>Disconnettiti</a>
+
+</div>
+
+
+
+
+    </aside>
+    <main class="center">
+      <section class="feed-top"><div><h2>Aggiornamenti dagli artisti che segui</h2><p>Nuove uscite, date del tour, backstage e apertura vendite biglietti in tempo reale.</p></div><div class="pill"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v18"/><path d="M3 12h18"/></svg>3 nuovi annunci oggi</div></section>
+      <article class="post" data-post>
+        <div class="post-head"><div class="artist"><div class="avatar"><img src="https://pplx-res.cloudinary.com/image/upload/pplx_search_images/211153cf169389fe417bba826fba9703e4ed2c7d.jpg" alt="Foto profilo di Amanda Bonassi" width="56" height="56" loading="lazy" /></div><div><strong>Amanda Bonassi</strong><span>Electro-pop • Artista verificata</span></div></div><div class="post-time">10 min fa • Nuova canzone</div></div>
+        <p>Abbiamo appena chiuso il mix finale di <strong>Midnight Signals</strong>. Il brano esce venerdì alle 00:00 e racconta la corsa notturna tra sintetizzatori analogici, batterie spezzate e voce filtrata. Chi pre-salva il singolo riceverà anche un estratto demo esclusivo.</p>
+        <div class="post-media"><div class="tag">Release update</div><div class="mini-grid"><div class="mini-card"><small>Titolo</small><strong>Midnight Signals</strong></div><div class="mini-card"><small>Data uscita</small><strong>9 Maggio 2026</strong></div><div class="mini-card"><small>Bonus</small><strong>Demo backstage</strong></div></div></div>
+        <div class="post-actions"><button class="action-btn like-btn" type="button"><span>❤</span><span class="label">Like</span> <span class="count">128</span></button><button class="action-btn" type="button"><span>⟳</span><span>Reposta</span> <span>21</span></button><button class="action-btn comment-toggle" type="button"><span>💬</span><span>Commenta</span> <span>8</span></button></div>
+        <div class="comment-box"><input type="text" placeholder="Scrivi un commento a Amanda Bonassi..." /><button class="send-btn" type="button" aria-label="Invia commento">➤</button></div><div class="comments"><div class="comment"><small>Martina • 5 min fa</small>Questo snippet synth-pop è già nella mia testa, non vedo l'ora di sentirlo completo.</div></div>
+      </article>
+      <article class="post" data-post>
+        <div class="post-head"><div class="artist"><div class="avatar"><img src="https://pplx-res.cloudinary.com/image/upload/pplx_search_images/7aea754f9d9bc9cbd11e11a88acd3b657c2f9b7f.jpg" alt="Foto profilo di Jacopo Paris" width="56" height="56" loading="lazy" /></div><div><strong>Jacopo Paris</strong><span>Indie rock • Band</span></div></div><div class="post-time">42 min fa • Tour</div></div>
+        <p>Le nuove tappe del tour europeo sono ufficiali. Abbiamo aggiunto Napoli, Bologna e Lione dopo le richieste ricevute nei commenti. Domani pubblichiamo anche gli orari del soundcheck aperto a chi ha il pass backstage.</p>
+        <div class="post-media"><div class="tag">Tour announcement</div><div class="mini-grid"><div class="mini-card"><small>14 Giugno</small><strong>Napoli • Arena Futura</strong></div><div class="mini-card"><small>18 Giugno</small><strong>Bologna • Dock Hall</strong></div><div class="mini-card"><small>23 Giugno</small><strong>Lione • Lumière Stage</strong></div></div></div>
+        <div class="post-actions"><button class="action-btn like-btn" type="button"><span>❤</span><span class="label">Like</span> <span class="count">244</span></button><button class="action-btn" type="button"><span>⟳</span><span>Reposta</span> <span>34</span></button><button class="action-btn comment-toggle" type="button"><span>💬</span><span>Commenta</span> <span>14</span></button></div>
+        <div class="comment-box"><input type="text" placeholder="Scrivi un commento a Jacopo Paris..." /><button class="send-btn" type="button" aria-label="Invia commento">➤</button></div><div class="comments"><div class="comment"><small>Davide • 16 min fa</small>Napoli era necessaria. Appena aprono i biglietti ci sono.</div></div>
+      </article>
+      <article class="post" data-post>
+        <div class="post-head"><div class="artist"><div class="avatar"><img src="https://pplx-res.cloudinary.com/image/upload/pplx_search_images/0b20431e4263ed41d400dcf2479f8df5c04dba05.jpg" alt="Foto profilo di Velvet Metro" width="56" height="56" loading="lazy" /></div><div><strong>Velvet Metro</strong><span>R&B / Soul • Collettivo</span></div></div><div class="post-time">1 h fa • Ticket sale</div></div>
+        <p>I biglietti per il mini-tour <strong>Afterglow Rooms</strong> sono online da ora. Abbiamo scelto venue più intime per farvi ascoltare i nuovi arrangiamenti dal vivo, con set estesi e sessioni Q&A dopo il concerto.</p>
+        <div class="post-media"><div class="tag">Biglietti disponibili</div><div class="mini-grid"><div class="mini-card"><small>Città</small><strong>Roma • Sala Orion</strong></div><div class="mini-card"><small>Prezzo</small><strong>€28 Early Entry</strong></div><div class="mini-card"><small>Disponibilità</small><strong>143 posti rimasti</strong></div></div></div>
+        <div class="post-actions"><button class="action-btn like-btn" type="button"><span>❤</span><span class="label">Like</span> <span class="count">301</span></button><button class="action-btn" type="button"><span>⟳</span><span>Reposta</span> <span>49</span></button><button class="action-btn comment-toggle" type="button"><span>💬</span><span>Commenta</span> <span>19</span></button></div>
+        <div class="comment-box"><input type="text" placeholder="Scrivi un commento a Velvet Metro..." /><button class="send-btn" type="button" aria-label="Invia commento">➤</button></div><div class="comments"><div class="comment"><small>Serena • 31 min fa</small>Presi due biglietti. Venue perfetta per questo tipo di live.</div></div>
+      </article>
+    </main>
+    <aside class="rightbar">
+      <div><div class="section-title">Tour in evidenza</div><div class="tour-card" style="margin-top:12px;"><strong>Luma Riot • Skyline Tour</strong><p>Milano, Torino e Firenze annunciate per fine giugno. Accesso prevendita domani alle 11:00.</p></div></div>
+      <div><div class="section-title">Vendite aperte</div><div class="ticket-card" style="margin-top:12px;"><strong>Night Bloom Session</strong><p>Biglietti live ora disponibili, pacchetto meet & greet quasi esaurito.</p></div></div>
+      <a href="nearby-events-map.html" style="text-decoration:none; color:inherit; display:grid; gap:12px;">
+  <div class="section-title">Eventi vicino a te</div>
+  <div style="display:grid; gap:12px;">
+    <a href="nearby-events-map.html" style="text-decoration:none; color:inherit; display:block; position:relative;">
+  <div style="position:relative; background:#0f1424; border:1px solid rgba(255,255,255,.06); border-radius:20px; overflow:hidden; box-shadow:0 18px 40px rgba(0,0,0,.28); height:190px;">
+    
+    <!-- Aggiunto pointer-events: none per far passare i click -->
+    <iframe src="nearby-events-map.html?mini=1" title="Anteprima mappa eventi vicini" style="width:100%; height:100%; border:0; display:block; pointer-events: none;"></iframe>
+    
+    <!-- Overlay testo con sfondo traslucido -->
+    <div style="position:absolute; left:16px; right:16px; bottom:12px; color:#dce3ff; font-size:14px; background:rgba(20,26,42,0.9); padding:8px 12px; border-radius:12px; backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,0.08); z-index:2;">
+      Tocca la mappa per aprire gli eventi entro 2 settimane
+    </div>
+  </div>
+</a>
+    </aside>
+  </div>
+  <script>
+    document.querySelectorAll('.like-btn').forEach((button)=>{button.addEventListener('click',()=>{const countEl=button.querySelector('.count');let count=parseInt(countEl.textContent,10);const liked=button.classList.toggle('liked');countEl.textContent=liked?count+1:count-1;});});
+    document.querySelectorAll('[data-post]').forEach((post)=>{const input=post.querySelector('.comment-box input');const send=post.querySelector('.send-btn');const comments=post.querySelector('.comments');const commentToggle=post.querySelector('.comment-toggle span:last-child');send.addEventListener('click',()=>{const value=input.value.trim();if(!value)return;const item=document.createElement('div');item.className='comment';item.innerHTML='<small>Tu • adesso</small>'+value.replace(/</g,'&lt;').replace(/>/g,'&gt;');comments.prepend(item);commentToggle.textContent=String(parseInt(commentToggle.textContent,10)+1);input.value='';});input.addEventListener('keydown',(event)=>{if(event.key==='Enter'){event.preventDefault();send.click();}});});
+  </script>
+<footer>
+    © 2026 BitSpace - Connetti. Ascolta, vivi la musica.
+  </footer>
+</body>
+</html>

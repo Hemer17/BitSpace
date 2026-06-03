@@ -3,20 +3,32 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: BitSpace music platform API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: artists
+    description: Artist operations
+  - name: events
+    description: Event and concert operations
+  - name: feed
+    description: Social feed operations
+  - name: tickets
+    description: Ticket operations
+  - name: merch
+    description: Merchandising operations
+  - name: stats
+    description: Dashboard statistics
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
       tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
           description: Healthy
@@ -24,13 +36,663 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /artists:
+    get:
+      operationId: listArtists
+      tags: [artists]
+      summary: List all artists
+      parameters:
+        - name: genre
+          in: query
+          schema:
+            type: string
+        - name: search
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of artists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Artist"
+
+  /artists/trending:
+    get:
+      operationId: listTrendingArtists
+      tags: [artists]
+      summary: Get trending artists
+      responses:
+        "200":
+          description: Trending artists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Artist"
+
+  /artists/{id}:
+    get:
+      operationId: getArtist
+      tags: [artists]
+      summary: Get artist by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Artist details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Artist"
+        "404":
+          description: Not found
+
+  /artists/{id}/follow:
+    post:
+      operationId: followArtist
+      tags: [artists]
+      summary: Follow an artist
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Follow result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FollowResult"
+
+  /artists/followed:
+    get:
+      operationId: listFollowedArtists
+      tags: [artists]
+      summary: Get followed artists for current user
+      responses:
+        "200":
+          description: Followed artists
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Artist"
+
+  /feed:
+    get:
+      operationId: getFeed
+      tags: [feed]
+      summary: Get social feed of artist posts
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [all, release, tour, story]
+      responses:
+        "200":
+          description: Feed posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Post"
+
+  /feed/summary:
+    get:
+      operationId: getFeedSummary
+      tags: [feed]
+      summary: Get summary of new feed activity
+      responses:
+        "200":
+          description: Feed summary
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FeedSummary"
+
+  /posts/{id}/like:
+    post:
+      operationId: likePost
+      tags: [feed]
+      summary: Like or unlike a post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Like result
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LikeResult"
+
+  /posts/{id}/comments:
+    post:
+      operationId: createComment
+      tags: [feed]
+      summary: Post a comment on a post
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CommentInput"
+      responses:
+        "201":
+          description: Comment created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+
+  /events:
+    get:
+      operationId: listEvents
+      tags: [events]
+      summary: List all events
+      parameters:
+        - name: city
+          in: query
+          schema:
+            type: string
+        - name: genre
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: List of events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+
+  /events/nearby:
+    get:
+      operationId: listNearbyEvents
+      tags: [events]
+      summary: Get events near a geolocation point
+      parameters:
+        - name: lat
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: lng
+          in: query
+          required: true
+          schema:
+            type: number
+        - name: radius
+          in: query
+          schema:
+            type: number
+            default: 50
+      responses:
+        "200":
+          description: Nearby events with distance
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/NearbyEvent"
+
+  /events/trending:
+    get:
+      operationId: listTrendingEvents
+      tags: [events]
+      summary: Get trending/featured events
+      responses:
+        "200":
+          description: Trending events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Event"
+
+  /events/{id}:
+    get:
+      operationId: getEvent
+      tags: [events]
+      summary: Get event by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Event details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Event"
+        "404":
+          description: Not found
+
+  /tour-stops:
+    get:
+      operationId: listTourStops
+      tags: [events]
+      summary: List tour stops for followed artists
+      responses:
+        "200":
+          description: Tour stops
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TourStop"
+
+  /tickets:
+    get:
+      operationId: listTickets
+      tags: [tickets]
+      summary: Get user's tickets
+      responses:
+        "200":
+          description: User tickets
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Ticket"
+
+  /tickets/purchase:
+    post:
+      operationId: purchaseTicket
+      tags: [tickets]
+      summary: Purchase a ticket for an event
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TicketInput"
+      responses:
+        "201":
+          description: Ticket purchased
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Ticket"
+
+  /merch:
+    get:
+      operationId: listMerch
+      tags: [merch]
+      summary: List merchandise items
+      parameters:
+        - name: artistId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Merch items
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MerchItem"
+    post:
+      operationId: createMerchItem
+      tags: [merch]
+      summary: Create a merchandise item (artist only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MerchInput"
+      responses:
+        "201":
+          description: Merch item created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MerchItem"
+
+  /merch/{id}:
+    delete:
+      operationId: deleteMerchItem
+      tags: [merch]
+      summary: Delete a merchandise item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  /stats/dashboard:
+    get:
+      operationId: getArtistDashboard
+      tags: [stats]
+      summary: Get artist dashboard statistics
+      responses:
+        "200":
+          description: Dashboard stats
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ArtistDashboard"
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    Artist:
+      type: object
+      required: [id, name, genre, city, followers, verified, avatarInitials]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        genre:
+          type: string
+        city:
+          type: string
+        followers:
+          type: integer
+        verified:
+          type: boolean
+        avatarInitials:
+          type: string
+        avatarUrl:
+          type: ["string", "null"]
+        bio:
+          type: ["string", "null"]
+        isFollowed:
+          type: boolean
+
+    FollowResult:
+      type: object
+      required: [following, followers]
+      properties:
+        following:
+          type: boolean
+        followers:
+          type: integer
+
+    Post:
+      type: object
+      required: [id, artistId, artistName, artistGenre, type, content, likes, reposts, comments, timeAgo]
+      properties:
+        id:
+          type: integer
+        artistId:
+          type: integer
+        artistName:
+          type: string
+        artistGenre:
+          type: string
+        artistAvatarUrl:
+          type: ["string", "null"]
+        artistAvatarInitials:
+          type: string
+        type:
+          type: string
+          enum: [release, tour, story]
+        content:
+          type: string
+        likes:
+          type: integer
+        reposts:
+          type: integer
+        comments:
+          type: integer
+        timeAgo:
+          type: string
+        liked:
+          type: boolean
+        meta:
+          type: ["object", "null"]
+          properties: {}
+          additionalProperties: true
+
+    Comment:
+      type: object
+      required: [id, postId, author, content, timeAgo]
+      properties:
+        id:
+          type: integer
+        postId:
+          type: integer
+        author:
+          type: string
+        content:
+          type: string
+        timeAgo:
+          type: string
+
+    CommentInput:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+
+    LikeResult:
+      type: object
+      required: [liked, likes]
+      properties:
+        liked:
+          type: boolean
+        likes:
+          type: integer
+
+    FeedSummary:
+      type: object
+      required: [newAnnouncements, newReleases, newTourDates]
+      properties:
+        newAnnouncements:
+          type: integer
+        newReleases:
+          type: integer
+        newTourDates:
+          type: integer
+
+    Event:
+      type: object
+      required: [id, title, artistName, city, venue, date, lat, lng, price, ticketsLeft, imageUrl]
+      properties:
+        id:
+          type: integer
+        title:
+          type: string
+        artistName:
+          type: string
+        artistId:
+          type: integer
+        city:
+          type: string
+        venue:
+          type: string
+        date:
+          type: string
+        lat:
+          type: number
+        lng:
+          type: number
+        price:
+          type: number
+        ticketsLeft:
+          type: integer
+        imageUrl:
+          type: string
+        genre:
+          type: string
+        isTrending:
+          type: boolean
+
+    NearbyEvent:
+      type: object
+      required: [event, distanceKm]
+      properties:
+        event:
+          $ref: "#/components/schemas/Event"
+        distanceKm:
+          type: number
+
+    TourStop:
+      type: object
+      required: [id, artistName, city, venue, date, status]
+      properties:
+        id:
+          type: integer
+        artistName:
+          type: string
+        artistId:
+          type: integer
+        city:
+          type: string
+        venue:
+          type: string
+        date:
+          type: string
+        status:
+          type: string
+          enum: [on_sale, presale, sold_out, soundcheck]
+
+    Ticket:
+      type: object
+      required: [id, eventTitle, artistName, city, venue, date, price, status, qrCode]
+      properties:
+        id:
+          type: integer
+        eventId:
+          type: integer
+        eventTitle:
+          type: string
+        artistName:
+          type: string
+        city:
+          type: string
+        venue:
+          type: string
+        date:
+          type: string
+        price:
+          type: number
+        status:
+          type: string
+          enum: [confirmed, pending, cancelled]
+        qrCode:
+          type: string
+
+    TicketInput:
+      type: object
+      required: [eventId]
+      properties:
+        eventId:
+          type: integer
+
+    MerchItem:
+      type: object
+      required: [id, artistId, name, category, price, stock, description, imageUrl, badge]
+      properties:
+        id:
+          type: integer
+        artistId:
+          type: integer
+        name:
+          type: string
+        category:
+          type: string
+        price:
+          type: number
+        stock:
+          type: integer
+        description:
+          type: string
+        imageUrl:
+          type: string
+        badge:
+          type: string
+
+    MerchInput:
+      type: object
+      required: [name, category, price, stock, description]
+      properties:
+        name:
+          type: string
+        category:
+          type: string
+        price:
+          type: number
+        stock:
+          type: integer
+        description:
+          type: string
+        imageUrl:
+          type: string
+        badge:
+          type: string
+
+    ArtistDashboard:
+      type: object
+      required: [totalFollowers, totalPlays, tourDates, merch, recentPosts]
+      properties:
+        totalFollowers:
+          type: integer
+        totalPlays:
+          type: integer
+        tourDates:
+          type: integer
+        merch:
+          type: integer
+        followersGrowth:
+          type: number
+        playsGrowth:
+          type: number
+        recentPosts:
+          type: array
+          items:
+            $ref: "#/components/schemas/Post"
+        upcomingEvents:
+          type: array
+          items:
+            $ref: "#/components/schemas/TourStop"
