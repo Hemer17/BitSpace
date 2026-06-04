@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BitSpace - Home</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+  :root {
+  --background-scuro: 11,15,26;
+  --scritta-principale: white;
+  --scritte-pulsanti: white;
+  --colore-principale: #6d5dfc;
+  --colore-pulsante1: #6d5dfc;
+  --colore-pulsante1-hover: #6d5dfc;
+  --colore-pulsante2: #6d5dfc;
+  --colore-pulsante2-hover: #5847ff;
+  --colore-pulsante3: white;
+  --colore-pulsante3-hover: white;
+  --sfondo-card: #151b2d;
+  --colore-footer: #9ea7c2;
+  --linea-footer: 255,255,255;
+}
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+    body { background: rgb(var(--background-scuro)); color: var(--scritta-principale); overflow-x: hidden; }
+    a { text-decoration: none; color: var(--scritte-pulsanti); }
+    header {
+      width: 100%;
+      padding: 20px 8%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: fixed;
+      top: 0;
+      z-index: 1000;
+      background: rgba(var(--background-scuro),0.8);
+      backdrop-filter: blur(10px);
+    }
+    .logo {
+  display: flex;
+  align-items: center;
+}
+
+.logo-img {
+  height: 55px;
+  width: auto;
+  display: block;
+}
+    nav { display: flex; gap: 20px; }
+    .btn { padding: 10px 18px; border-radius: 12px; transition: 0.3s; font-weight: 500; }
+    .login { border: 1px solid var(--colore-pulsante1); }
+    .login:hover { background: var(--colore-pulsante1-hover); }
+    .register { background: var(--colore-pulsante2); }
+    .register:hover { background: var(--colore-pulsante2-hover); }
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 120px 8% 60px;
+      background: linear-gradient(rgba(var(--background-scuro),0.7), rgba(var(--background-scuro),0.9)), url('https://images.unsplash.com/photo-1501386761578-eac5c94b800a?q=80&w=1600&auto=format&fit=crop');
+      background-size: cover;
+      background-position: center;
+    }
+    .secondary {
+  border: 1px solid var(--colore-pulsante3);
+  background: transparent;
+  color: var(--scritte-pulsanti);
+  cursor: pointer;
+}
+
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.modal.active {
+  display: flex;
+}
+
+.modal-content {
+  position: relative;
+  width: 100%;
+  max-width: 620px;
+  background: var(--sfondo-card);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+
+.modal-content h2 {
+  font-size: 32px;
+  margin-bottom: 14px;
+}
+
+.modal-content p {
+  color: #d7dcf0;
+  line-height: 1.6;
+}
+
+.modal-section {
+  margin-top: 22px;
+}
+
+.modal-section h3 {
+  margin-bottom: 10px;
+  color: var(--colore-principale);
+}
+
+.modal-section ul {
+  padding-left: 20px;
+  color: #eef1ff;
+}
+
+.modal-section li {
+  margin-bottom: 8px;
+}
+
+.modal-cta {
+  margin-top: 22px;
+  font-weight: 500;
+}
+
+.modal-register {
+  display: inline-block;
+  margin-top: 18px;
+  background: var(--colore-pulsante1);
+  color: white;
+  padding: 12px 18px;
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  border: none;
+  background: transparent;
+  color: white;
+  font-size: 32px;
+  cursor: pointer;
+  line-height: 1;
+}
+.footer-link {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  color: var(--colore-footer);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline;
+}
+
+.footer-link:hover {
+  color: white;
+}
+.footer-link:focus {
+  outline: none;
+}
+    .hero-content h1 { font-size: 64px; margin-bottom: 20px; }
+    .hero-content span { color: var(--colore-principale); }
+    .hero-content p { max-width: 700px; margin: auto; color: var(--scritta-principale); font-size: 18px; margin-bottom: 35px; }
+    .hero-buttons { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; }
+    .hero-buttons a { padding: 14px 28px; border-radius: 14px; font-weight: 600; transition: 0.3s; }
+    .discover { background: var(--colore-pulsante2); }
+    .discover:hover { background: var(--colore-pulsante2-hover); }
+    .secondary { border: 1px solid var(--colore-pulsante3); }
+    .secondary:hover { background: var(--colore-pulsante3-hover); color: rgb(var(--background-scuro)); }
+    .trending { padding: 80px 8%; }
+    .section-title { font-size: 40px; margin-bottom: 40px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 30px; }
+    .card { background: var(--sfondo-card); border-radius: 22px; overflow: hidden; transition: 0.3s; }
+    .card:hover { transform: translateY(-8px); }
+    .card img { width: 100%; height: 220px; object-fit: cover; }
+    .card-content { padding: 20px; }
+    .card-content h3 { margin-bottom: 10px; }
+    .location { color: var(--scritta-principale); margin-bottom: 12px; }
+    .date { color: var(--colore-principale); font-weight: 600; margin-bottom: 20px; }
+    .hero-buttons button.secondary {
+  padding: 14px 28px;
+  border-radius: 14px;
+  font-weight: 600;
+  transition: 0.3s;
+  background: transparent;
+  border: 1px solid var(--colore-pulsante3);
+  color: var(--scritte-pulsanti);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.hero-buttons button.secondary:hover {
+  background: var(--colore-pulsante3-hover);
+  color: rgb(var(--background-scuro));
+}
+    .book-btn { display: inline-block; background: var(--colore-pulsante1); padding: 10px 18px; border-radius: 12px; }
+    footer { text-align: center; padding: 30px; color: var(--colore-footer); border-top: 1px solid rgba(var(--linea-footer),0.08); margin-top: 50px; }
+    @media (max-width: 768px) {
+      .hero-content h1 { font-size: 42px; }
+      header { flex-direction: column; gap: 15px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+  <img src="bitspacescritta.png" alt="BitSpace" class="logo-img">
+</div>
+    <nav>
+      <a href="login-2.html" class="btn login">Login</a>
+      <a href="register-3.html" class="btn register">Registrati</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Scopri i migliori <span>concerti</span> vicino a te</h1>
+      <p>Prenota eventi live, scopri artisti in tendenza e vivi la musica insieme alla community di BitSpace.</p>
+      <div class="hero-buttons">
+        <a href="#concerti" class="discover">Esplora Concerti</a>
+        <button type="button" class="secondary" id="openDiscoverModal">Scopri di più</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="trending" id="concerti">
+    <h2 class="section-title">Concerti in Tendenza in Italia</h2>
+    <div class="cards">
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?q=80&w=1200&auto=format&fit=crop" alt="Concerto a Milano" />
+        <div class="card-content">
+          <h3>Neon Dreams Festival</h3>
+          <p class="location">📍 Milano</p>
+          <p class="date">12 Agosto 2026</p>
+          <a href="login-2.html" class="book-btn">Prenota Ora</a>
+        </div>
+      </div>
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1503095396549-807759245b35?q=80&w=1200&auto=format&fit=crop" alt="Concerto a Napoli" />
+        <div class="card-content">
+          <h3>Vibes Under Stars</h3>
+          <p class="location">📍 Napoli</p>
+          <p class="date">25 Luglio 2026</p>
+          <a href="login-2.html" class="book-btn">Prenota Ora</a>
+        </div>
+      </div>
+      <div class="card">
+        <img src="https://images.unsplash.com/photo-1459749411175-04bf5292ceea?q=80&w=1200&auto=format&fit=crop" alt="Concerto a Roma" />
+        <div class="card-content">
+          <h3>Electro Pulse Night</h3>
+          <p class="location">📍 Roma</p>
+          <p class="date">7 Settembre 2026</p>
+          <a href="login-2.html" class="book-btn">Prenota Ora</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    © 2026 BitSpace - Connetti. Ascolta, vivi la musica.<br><button type="button" class="footer-link" id="openAboutModal">About us</button> • 
+<button type="button" class="footer-link" id="openLegalModal">Informazioni legali</button> • 
+<button type="button" class="footer-link" id="openPrivacyModal">Privacy Policy</button> 
+  </footer>
+  <div id="discoverModal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" id="closeDiscoverModal" aria-label="Chiudi popup">&times;</button>
+    <h2>Novità su BitSpace</h2>
+    <p>Scopri in anteprima alcuni dei nuovi artisti che stanno arrivando su BitSpace e i concerti più attesi delle prossime settimane.</p>
+
+    <div class="modal-section">
+      <h3>Nuovi artisti</h3>
+      <ul>
+        <li>Aura Nova — elettronica e visual live</li>
+        <li>Velvet Echo — indie pop emergente</li>
+        <li>Neon Pulse — techno e club culture</li>
+      </ul>
+    </div>
+
+    <div class="modal-section">
+      <h3>Concerti in arrivo</h3>
+      <ul>
+        <li>Sunset Waves Live — Napoli, Casa della Musica</li>
+        <li>Midnight Frequencies — Milano, Fabrique</li>
+        <li>Urban Sound Experience — Roma, Teatro Marcello</li>
+      </ul>
+    </div>
+
+    <p class="modal-cta">Unisciti subito alla community per seguire gli artisti e prenotare in anticipo i tuoi eventi preferiti.</p>
+    <a href="register-3.html" class="modal-register">Unisciti ora</a>
+  </div>
+</div>
+
+<script>
+  const openDiscoverModal = document.getElementById("openDiscoverModal");
+  const closeDiscoverModal = document.getElementById("closeDiscoverModal");
+  const discoverModal = document.getElementById("discoverModal");
+
+  openDiscoverModal.addEventListener("click", () => {
+    discoverModal.classList.add("active");
+  });
+
+  closeDiscoverModal.addEventListener("click", () => {
+    discoverModal.classList.remove("active");
+  });
+
+  discoverModal.addEventListener("click", (e) => {
+    if (e.target === discoverModal) {
+      discoverModal.classList.remove("active");
+    }
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      discoverModal.classList.remove("active");
+    }
+  });
+</script>
+
+<div id="aboutModal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" id="closeAboutModal" aria-label="Chiudi popup">&times;</button>
+    <h2>About BitSpace</h2>
+    <p>BitSpace è un social network dedicato alla musica che connette artisti emergenti e già affermati con la propria fanbase in modo diretto, semplice e coinvolgente.</p>
+    <p>Gli artisti possono pubblicare aggiornamenti, nuovi singoli, nuovi album, tour e concerti, creando uno spazio sempre aggiornato per restare vicini ai propri fan.</p>
+    <p>Gli utenti possono seguire i propri artisti preferiti, interagire con i contenuti, acquistare biglietti e merchandising, e scoprire nuovi talenti nella propria città tramite una mappa interattiva.</p>
+    <p>Il nostro obiettivo è rendere la scoperta musicale più vicina, sociale e dinamica, trasformando ogni artista in una community viva.</p>
+  </div>
+</div>
+
+<div id="legalModal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" id="closeLegalModal" aria-label="Chiudi popup">&times;</button>
+    <h2>Informazioni legali</h2>
+    <p>BitSpace è una piattaforma digitale pensata per la promozione musicale e l’interazione tra artisti, fan e organizzatori di eventi.</p>
+    <p>I contenuti pubblicati dagli artisti restano di loro proprietà, mentre BitSpace si riserva il diritto di moderare contenuti che violano le regole della community o la normativa vigente.</p>
+    <p>L’acquisto di biglietti e merchandising può avvenire tramite partner terzi o canali ufficiali indicati sulla piattaforma, secondo disponibilità e condizioni del venditore.</p>
+    <p>BitSpace non garantisce la disponibilità continua di tutti i servizi e può aggiornare funzionalità, contenuti e condizioni d’uso in qualsiasi momento.</p>
+  </div>
+</div>
+
+<div id="privacyModal" class="modal">
+  <div class="modal-content">
+    <button class="modal-close" id="closePrivacyModal" aria-label="Chiudi popup">&times;</button>
+    <h2>Privacy Policy</h2>
+    <p>BitSpace raccoglie solo i dati necessari per offrire il servizio, come nome, email, preferenze musicali e interazioni con artisti e contenuti.</p>
+    <p>I dati possono essere utilizzati per personalizzare l’esperienza, mostrare artisti e concerti rilevanti e migliorare la funzionalità della mappa interattiva.</p>
+    <p>Non vendiamo i tuoi dati personali a terzi. Eventuali condivisioni con partner avvengono solo per l’erogazione del servizio o per obblighi legali.</p>
+    <p>Puoi modificare o richiedere la cancellazione dei tuoi dati secondo le impostazioni disponibili nella piattaforma e in base alla normativa applicabile.</p>
+  </div>
+</div>
+
+<script>
+  function setupModal(openId, closeId, modalId) {
+    const openBtn = document.getElementById(openId);
+    const closeBtn = document.getElementById(closeId);
+    const modal = document.getElementById(modalId);
+
+    openBtn.addEventListener("click", () => modal.classList.add("active"));
+    closeBtn.addEventListener("click", () => modal.classList.remove("active"));
+
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) modal.classList.remove("active");
+    });
+  }
+
+  setupModal("openAboutModal", "closeAboutModal", "aboutModal");
+  setupModal("openLegalModal", "closeLegalModal", "legalModal");
+  setupModal("openPrivacyModal", "closePrivacyModal", "privacyModal");
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      document.querySelectorAll(".modal.active").forEach(modal => modal.classList.remove("active"));
+    }
+  });
+</script>
+</body>
+</html>

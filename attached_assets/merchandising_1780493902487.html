@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestione Merchandising</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:#0b0f1a;
+      --surface:#141a2a;
+      --surface-3:#0f1424;
+      --text:#f5f7ff;
+      --muted:#99a3c7;
+      --line:rgba(255,255,255,.08);
+      --primary:#6d5dfc;
+      --success:#25c281;
+      --shadow:0 18px 40px rgba(0,0,0,.28);
+    }
+
+    * { box-sizing:border-box; margin:0; padding:0; }
+
+    body {
+      font-family:Inter,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      min-height:100vh;
+      padding:24px;
+    }
+
+    a { text-decoration:none; color:inherit; }
+
+    button, input, textarea, select {
+      font:inherit;
+      color:inherit;
+    }
+
+    button {
+      border:0;
+      background:none;
+      cursor:pointer;
+    }
+
+    input, textarea, select {
+      width:100%;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:16px;
+      padding:14px 16px;
+      outline:0;
+      box-sizing:border-box;
+    }
+
+    textarea {
+      resize:vertical;
+      min-height:110px;
+    }
+
+    img {
+      max-width:100%;
+      display:block;
+    }
+
+    .page {
+      max-width:1200px;
+      margin:0 auto;
+      display:grid;
+      gap:20px;
+    }
+
+    .hero,
+    .panel,
+    .product-item,
+    .form-box {
+      background:rgba(20,26,42,.92);
+      border:1px solid var(--line);
+      box-shadow:var(--shadow);
+      backdrop-filter:blur(12px);
+    }
+
+    .hero {
+      border-radius:28px;
+      padding:24px;
+      display:flex;
+      justify-content:space-between;
+      gap:16px;
+      align-items:flex-start;
+      flex-wrap:wrap;
+    }
+
+    .hero h1 {
+      font-size:32px;
+      margin-bottom:8px;
+    }
+
+    .hero p {
+      color:var(--muted);
+      max-width:70ch;
+      line-height:1.7;
+    }
+
+    .btn {
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      min-height:44px;
+      padding:10px 16px;
+      border-radius:16px;
+      background:linear-gradient(135deg,var(--primary),#4b39f5);
+      color:#fff;
+    }
+
+    .grid {
+      display:grid;
+      grid-template-columns:1fr 420px;
+      gap:20px;
+    }
+
+    .panel {
+      border-radius:28px;
+      padding:22px;
+    }
+
+    .section-head {
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom:16px;
+    }
+
+    .section-head h2 {
+      font-size:22px;
+    }
+
+    .section-head p {
+      color:var(--muted);
+    }
+
+    .products {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:16px;
+    }
+
+    .product-item {
+      border-radius:22px;
+      padding:16px;
+      display:grid;
+      gap:12px;
+    }
+
+    .product-img {
+      width:100%;
+      height:180px;
+      border-radius:18px;
+      object-fit:cover;
+      background:#1a2134;
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .product-top {
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+    }
+
+    .badge {
+      font-size:12px;
+      padding:7px 10px;
+      border-radius:999px;
+      background:rgba(109,93,252,.14);
+      color:#dcd7ff;
+      border:1px solid rgba(109,93,252,.25);
+    }
+
+    .product-item p {
+      color:#e8edff;
+      line-height:1.65;
+      font-size:14px;
+    }
+
+    .product-meta {
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:10px;
+    }
+
+    .mini {
+      background:rgba(9,13,24,.55);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:16px;
+      padding:12px;
+    }
+
+    .mini small {
+      display:block;
+      color:var(--muted);
+      margin-bottom:4px;
+    }
+
+    .mini strong {
+      font-size:14px;
+    }
+
+    .actions {
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .small-btn {
+      min-height:38px;
+      padding:8px 12px;
+      border-radius:12px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.08);
+      color:#dce3ff;
+    }
+
+    .form-box {
+      border-radius:28px;
+      padding:22px;
+      display:grid;
+      gap:14px;
+      align-content:start;
+      height:fit-content;
+      position:sticky;
+      top:24px;
+    }
+
+    .form-grid {
+      display:grid;
+      gap:12px;
+    }
+
+    .field {
+      display:grid;
+      gap:8px;
+    }
+
+    .field label {
+      font-size:13px;
+      color:var(--muted);
+      text-transform:uppercase;
+      letter-spacing:.06em;
+    }
+
+    .toast-wrap {
+      position:fixed;
+      right:20px;
+      bottom:20px;
+      display:grid;
+      gap:10px;
+      z-index:50;
+    }
+
+    .toast {
+      padding:14px 16px;
+      border-radius:18px;
+      min-width:280px;
+      background:rgba(20,26,42,.96);
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    @media (max-width:980px) {
+      .grid {
+        grid-template-columns:1fr;
+      }
+
+      .form-box {
+        position:static;
+      }
+
+      .products {
+        grid-template-columns:1fr;
+      }
+
+      .product-meta {
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <section class="hero">
+      <div>
+        <h1>Gestione merchandising</h1>
+        <p>
+          Qui puoi gestire i prodotti merchandising che offri ai tuoi fan.
+        </p>
+      </div>
+      <a class="btn" href="artist-dashboard.html">← Torna alla dashboard</a>
+    </section>
+
+    <div class="grid">
+      <section class="panel">
+        <div class="section-head">
+          <div>
+            <h2>Prodotti attualmente in catalogo</h2>
+          </div>
+        </div>
+        <div class="products" id="productsList"></div>
+      </section>
+
+      <aside class="form-box">
+        <div class="section-head" style="margin-bottom:0">
+          <div>
+            <h2>Aggiungi prodotto</h2>
+            <p>Compila i campi e carica immagini.</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+          <div class="field">
+            <label>Nome prodotto</label>
+            <input id="prodName" type="text" placeholder="Es. T-shirt Neon Wave" />
+          </div>
+
+          <div class="field">
+            <label>Categoria</label>
+            <select id="prodCategory">
+              <option value="Magliette">Magliette</option>
+              <option value="Portachiavi">Portachiavi</option>
+              <option value="Cappelli">Cappelli</option>
+              <option value="Bandiere">Bandiere</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Prezzo</label>
+            <input id="prodPrice" type="text" placeholder="€ 24,00" />
+          </div>
+
+          <div class="field">
+            <label>Quantità</label>
+            <input id="prodStock" type="number" min="0" placeholder="12" />
+          </div>
+
+          <div class="field">
+            <label>Descrizione</label>
+            <textarea id="prodDesc" placeholder="Descrizione prodotto..."></textarea>
+          </div>
+
+          <div class="field">
+            <label>Immagini prodotto</label>
+            <input id="prodImages" type="file" accept="image/*" multiple />
+            <small style="color:var(--muted)">
+              Puoi selezionare più immagini. Verranno mostrate in anteprima nel prodotto nuovo.
+            </small>
+          </div>
+
+          <button class="btn" id="addProductBtn">Aggiungi prodotto</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <script>
+    const el = id => document.getElementById(id);
+    const toastWrap = el('toastWrap');
+
+    const toast = t => {
+      const d = document.createElement('div');
+      d.className = 'toast';
+      d.textContent = t;
+      toastWrap.appendChild(d);
+      setTimeout(() => d.remove(), 2400);
+    };
+
+    const products = [
+      {
+        id: crypto.randomUUID(),
+        name: 'T-shirt Neon Wave',
+        category: 'Magliette',
+        price: '€ 24,00',
+        stock: 18,
+        desc: 'Maglia in cotone con grafica neon frontale.',
+        badge: 'Best seller',
+        images: [
+          'https://shop.martingarrix.com/cdn/shop/files/STMPDMiami2026Back.png?v=1770125606&width=1206','https://shop.martingarrix.com/cdn/shop/files/STMPDMiami2026Front.png?v=1770125606&width=1206'
+        ]
+      },
+      {
+        id: crypto.randomUUID(),
+        name: 'Keychain Pulse',
+        category: 'Portachiavi',
+        price: '€ 8,00',
+        stock: 42,
+        desc: 'Portachiavi metallico con logo minimal.',
+        badge: 'Nuovo',
+        images: [
+          'https://shop.martingarrix.com/cdn/shop/files/STMPDLogoKeychain.png?v=1761642243&width=1206'
+        ]
+      },
+      {
+        id: crypto.randomUUID(),
+        name: 'Cap Echo',
+        category: 'Cappelli',
+        price: '€ 19,00',
+        stock: 27,
+        desc: 'Cappellino ricamato con dettaglio frontale.',
+        badge: 'Limited',
+        images: [
+          'https://shop.martingarrix.com/cdn/shop/products/cap1.jpg'
+        ]
+      },
+      {
+        id: crypto.randomUUID(),
+        name: 'Bandiera Live Set',
+        category: 'Bandiere',
+        price: '€ 16,00',
+        stock: 15,
+        desc: 'Bandiera grande per concerti e backstage.',
+        badge: 'On tour',
+        images: [
+          'https://shop.martingarrix.com/cdn/shop/files/STMPD_AW_vlag_2_150x100cm.png?v=1752849734&width=1206'
+        ]
+      }
+    ];
+
+    function renderProducts() {
+      el('productsList').innerHTML = products.map(p => `
+        <article class="product-item">
+          <img class="product-img" src="${p.images[0]}" alt="${p.name}" />
+          <div class="product-top">
+            <div>
+              <strong>${p.name}</strong>
+              <p style="color:var(--muted);margin-top:4px">${p.category}</p>
+            </div>
+            <span class="badge">${p.badge}</span>
+          </div>
+          <p>${p.desc}</p>
+          <div class="product-meta">
+            <div class="mini">
+              <small>Prezzo</small>
+              <strong>${p.price}</strong>
+            </div>
+            <div class="mini">
+              <small>Disponibilità</small>
+              <strong>${p.stock}</strong>
+            </div>
+            <div class="mini">
+              <small>Immagini</small>
+              <strong>${p.images.length}</strong>
+            </div>
+          </div>
+          <div class="actions">
+            ${p.images.map(src => `
+              <img class="product-img" style="height:120px" src="${src}" alt="${p.name} immagine" />
+            `).join('')}
+          </div>
+          <div class="actions">
+            <button class="small-btn" data-edit="${p.id}">Modifica</button>
+            <button class="small-btn" data-delete="${p.id}">Elimina</button>
+          </div>
+        </article>
+      `).join('');
+    }
+
+    function fileToDataUrl(file) {
+      return new Promise(resolve => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(file);
+      });
+    }
+
+    el('addProductBtn').onclick = async () => {
+      const name = el('prodName').value.trim();
+      const category = el('prodCategory').value;
+      const price = el('prodPrice').value.trim();
+      const stock = el('prodStock').value.trim();
+      const desc = el('prodDesc').value.trim();
+      const files = [...el('prodImages').files];
+
+      if (!name || !price || !stock || !desc) return toast('Compila tutti i campi obbligatori.');
+
+      let images = [];
+      if (files.length) {
+        images = await Promise.all(files.map(fileToDataUrl));
+      } else {
+        images = [
+          'https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=1200&q=80'
+        ];
+      }
+
+      products.unshift({
+        id: crypto.randomUUID(),
+        name,
+        category,
+        price,
+        stock: Number(stock),
+        desc,
+        badge: 'Nuovo prodotto',
+        images
+      });
+
+      ['prodName', 'prodPrice', 'prodStock', 'prodDesc'].forEach(id => el(id).value = '');
+      el('prodImages').value = '';
+      renderProducts();
+      toast('Prodotto aggiunto con immagini.');
+    };
+
+    document.addEventListener('click', e => {
+      const edit = e.target.closest('[data-edit]');
+      const del = e.target.closest('[data-delete]');
+      if (del) {
+        const id = del.dataset.delete;
+        const idx = products.findIndex(p => p.id === id);
+        if (idx >= 0) products.splice(idx, 1);
+        renderProducts();
+        toast('Prodotto eliminato.');
+      }
+      if (edit) toast('Funzione modifica demo.');
+    });
+
+    renderProducts();
+  </script>
+</body>
+</html>

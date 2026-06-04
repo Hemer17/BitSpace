@@ -19,7 +19,6 @@ type AuthContextType = {
     genres: string[];
   }) => Promise<void>;
   logout: () => Promise<void>;
-  updateUser: (u: SessionUser) => void;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -82,10 +81,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   };
 
-  const updateUser = (u: SessionUser) => setUser(u);
-
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

@@ -29,12 +29,13 @@ export interface FollowResult {
   followers: number;
 }
 
-export type PostType = (typeof PostType)[keyof typeof PostType];
+export type PostType = typeof PostType[keyof typeof PostType];
+
 
 export const PostType = {
-  release: "release",
-  tour: "tour",
-  story: "story",
+  release: 'release',
+  tour: 'tour',
+  story: 'story',
 } as const;
 
 /**
@@ -106,14 +107,14 @@ export interface NearbyEvent {
   distanceKm: number;
 }
 
-export type TourStopStatus =
-  (typeof TourStopStatus)[keyof typeof TourStopStatus];
+export type TourStopStatus = typeof TourStopStatus[keyof typeof TourStopStatus];
+
 
 export const TourStopStatus = {
-  on_sale: "on_sale",
-  presale: "presale",
-  sold_out: "sold_out",
-  soundcheck: "soundcheck",
+  on_sale: 'on_sale',
+  presale: 'presale',
+  sold_out: 'sold_out',
+  soundcheck: 'soundcheck',
 } as const;
 
 export interface TourStop {
@@ -126,12 +127,13 @@ export interface TourStop {
   status: TourStopStatus;
 }
 
-export type TicketStatus = (typeof TicketStatus)[keyof typeof TicketStatus];
+export type TicketStatus = typeof TicketStatus[keyof typeof TicketStatus];
+
 
 export const TicketStatus = {
-  confirmed: "confirmed",
-  pending: "pending",
-  cancelled: "cancelled",
+  confirmed: 'confirmed',
+  pending: 'pending',
+  cancelled: 'cancelled',
 } as const;
 
 export interface Ticket {
@@ -164,7 +166,6 @@ export interface MerchItem {
 }
 
 export interface MerchInput {
-  artist_id?: number;
   name: string;
   category: string;
   price: number;
@@ -186,34 +187,36 @@ export interface ArtistDashboard {
 }
 
 export type ListArtistsParams = {
-  genre?: string;
-  search?: string;
+genre?: string;
+search?: string;
 };
 
 export type GetFeedParams = {
-  type?: GetFeedType;
+type?: GetFeedType;
 };
 
-export type GetFeedType = (typeof GetFeedType)[keyof typeof GetFeedType];
+export type GetFeedType = typeof GetFeedType[keyof typeof GetFeedType];
+
 
 export const GetFeedType = {
-  all: "all",
-  release: "release",
-  tour: "tour",
-  story: "story",
+  all: 'all',
+  release: 'release',
+  tour: 'tour',
+  story: 'story',
 } as const;
 
 export type ListEventsParams = {
-  city?: string;
-  genre?: string;
+city?: string;
+genre?: string;
 };
 
 export type ListNearbyEventsParams = {
-  lat: number;
-  lng: number;
-  radius?: number;
+lat: number;
+lng: number;
+radius?: number;
 };
 
 export type ListMerchParams = {
-  artistId?: number;
+artistId?: number;
 };
+

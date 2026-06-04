@@ -1,8 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { X } from "lucide-react";
-
-const BASE = import.meta.env.BASE_URL.replace(/\/$/, "");
+import { X, Music2 } from "lucide-react";
 
 function Modal({ id, open, onClose, children }: { id: string; open: boolean; onClose: () => void; children: React.ReactNode }) {
   if (!open) return null;
@@ -32,8 +30,10 @@ export default function LandingPage() {
       {/* Header */}
       <header className="w-full px-[8%] py-5 flex justify-between items-center fixed top-0 z-40 bg-[rgba(11,15,26,0.8)] backdrop-blur-[10px]">
         <div className="flex items-center gap-2">
-          <img src={`${BASE}/bitspaceIcon.png`} alt="BitSpace" className="w-9 h-9 object-contain" />
-          <img src={`${BASE}/bitspacescritta.png`} alt="BitSpace" className="h-7 object-contain hidden sm:block" />
+          <div className="w-9 h-9 rounded-xl bg-[#6d5dfc] flex items-center justify-center">
+            <Music2 className="w-5 h-5 text-white" />
+          </div>
+          <span className="text-xl font-bold tracking-tight">BitSpace</span>
         </div>
         <nav className="flex gap-4">
           <Link href="/login" className="px-[18px] py-[10px] rounded-xl border border-[#6d5dfc] font-medium hover:bg-[#6d5dfc] transition-colors text-sm">
