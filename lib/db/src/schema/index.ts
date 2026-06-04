@@ -4,3 +4,7 @@ export * from "./posts";
 export * from "./tickets";
 export * from "./merch";
 export * from "./tour_stops";
+export * from "./users";
+export * from "./follows";
+export * from "./songs";
+export * from "./artist_blocks";

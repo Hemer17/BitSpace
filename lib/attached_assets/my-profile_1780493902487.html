@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>BitSpace - Il mio profilo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+:root{--bg:#0b0f1a;--surface:#141a2a;--surface-2:#0f1424;--text:#f5f7ff;--muted:#99a3c7;--line:rgba(255,255,255,.08);--primary:#6d5dfc;--shadow:0 18px 40px rgba(0,0,0,.28)}*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Inter',sans-serif;background:radial-gradient(circle at top left,rgba(109,93,252,.15),transparent 28%),var(--bg);color:var(--text);padding:24px}.wrap{max-width:1180px;margin:0 auto;display:grid;gap:20px}.top{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}.back{padding:12px 16px;border-radius:14px;background:#141a2a;border:1px solid var(--line);text-decoration:none;color:#fff}.grid{display:grid;grid-template-columns:320px minmax(0,1fr);gap:20px}.card{background:rgba(20,26,42,.92);border:1px solid var(--line);border-radius:24px;padding:20px;box-shadow:var(--shadow)}.head{display:flex;gap:14px;align-items:center}.avatar{width:72px;height:72px;border-radius:50%;overflow:hidden;background:linear-gradient(135deg,#2c3550,#171d31);display:grid;place-items:center;font-weight:800}.avatar img{width:100%;height:100%;object-fit:cover}.muted{color:var(--muted)}.section{display:grid;gap:12px}.item{padding:14px;border-radius:16px;background:var(--surface-2);border:1px solid var(--line)}.list{display:grid;gap:12px}.chips{display:flex;flex-wrap:wrap;gap:10px}.chip{padding:8px 10px;border-radius:999px;background:#0f1424;border:1px solid rgba(255,255,255,.06)}.post{display:grid;gap:10px;padding:16px;border-radius:18px;background:var(--surface-2);border:1px solid var(--line)}.small{font-size:14px;line-height:1.6}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.stat{padding:14px;border-radius:16px;background:#0f1424;border:1px solid rgba(255,255,255,.06)}.stat strong{display:block;font-size:22px}.btn{display:inline-flex;justify-content:center;align-items:center;gap:8px;padding:12px 14px;border-radius:14px;background:var(--primary);color:#fff;text-decoration:none}.subgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}@media(max-width:900px){.grid,.subgrid,.stats{grid-template-columns:1fr}}
+footer { text-align: center; padding: 30px; color: #9ea7c2; border-top: 1px solid rgba(255,255,255,0.08); margin-top: 50px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div><h1>Il mio profilo</h1><p class="muted">I tuoi post, repost, artisti seguiti ed eventi prenotati.</p></div>
+    <a class="back" href="artist-feed.html">← Torna al feed</a>
+  </div>
+  <div class="grid">
+    <aside class="card section">
+      <div class="head">
+        <div class="avatar">LF</div>
+        <div><h2>Luca Ferri</h2><p class="muted">@luca.live • Napoli</p></div>
+      </div>
+      <p class="small">Seguendo artisti emergenti, tour italiani e nuove uscite ogni settimana. Fan di live elettronici, indie e R&B.</p>
+      <div class="stats"><div class="stat"><strong>12</strong><span class="muted">Artisti seguiti</span></div><div class="stat"><strong>7</strong><span class="muted">Biglietti</span></div><div class="stat"><strong>24</strong><span class="muted">Posti salvati</span></div></div>
+      <a class="btn" href="profile-edit.html">Modifica profilo</a>
+      <div class="section"><h3>Artisti che segui</h3><div class="chips"><span class="chip">Amanda Bonassi</span><span class="chip">Jacopo Paris</span><span class="chip">Velvet Metro</span><span class="chip">Luma Riot</span><span class="chip">Rhythm Atlas</span></div></div>
+    </aside>
+    <main class="section">
+      <div class="subgrid">
+        <div class="card"><h3>I tuoi post</h3><div class="list"><div class="post"><strong>Recensione live</strong><span class="muted small">Ho visto il set di Amanda Bonassi ieri: synth pazzeschi e atmosfera enorme.</span></div><div class="post"><strong>Prevendita aperta</strong><span class="muted small">Preso il biglietto per Velvet Metro a Roma, non vedo l'ora.</span></div></div></div>
+        <div class="card"><h3>Post repostati</h3><div class="list"><div class="post"><strong>Jacopo Paris</strong><span class="muted small">Repostato l'annuncio del nuovo tour europeo e delle date in Italia.</span></div><div class="post"><strong>Luma Riot</strong><span class="muted small">Repostato il drop dei biglietti early entry per Skyline Tour.</span></div></div></div>
+      </div>
+      <div class="card"><h3>Prossimi eventi a cui parteciperai</h3><div class="list"><div class="item"><strong>14 Giugno • Jacopo Paris</strong><div class="muted">Napoli • Arena Futura • Biglietto confermato</div></div><div class="item"><strong>2 Luglio • Velvet Metro</strong><div class="muted">Roma • Sala Orion • Biglietto confermato</div></div><div class="item"><strong>18 Luglio • Amanda Bonassi</strong><div class="muted">Napoli • Pulse Hall • Biglietto confermato</div></div></div></div>
+    </main>
+  </div>
+</div>
+ <footer>
+    © 2026 BitSpace - Connetti. Ascolta, vivi la musica.
+  </footer>
+</body>
+</html>
