@@ -12,6 +12,9 @@ export const artistsTable = pgTable("artists", {
   avatarInitials: text("avatar_initials").notNull(),
   avatarUrl: text("avatar_url"),
   bio: text("bio"),
+  userId: integer("user_id"),
+  plays: integer("plays").notNull().default(0),
+  banned: boolean("banned").notNull().default(false),
 });
 
 export const insertArtistSchema = createInsertSchema(artistsTable).omit({ id: true });

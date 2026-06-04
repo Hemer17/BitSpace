@@ -11,7 +11,7 @@ import FeedPage from "@/pages/FeedPage";
 import MapPage from "@/pages/MapPage";
 import ArtistsPage from "@/pages/ArtistsPage";
 import ArtistDetailPage from "@/pages/ArtistDetailPage";
-import TicketsPage from "@/pages/TicketsPage";
+import ShopPage from "@/pages/ShopPage";
 import DashboardPage from "@/pages/DashboardPage";
 import NotFound from "@/pages/not-found";
 
@@ -48,7 +48,8 @@ function AppRouter() {
         <Route path="/mappa" component={MapPage} />
         <Route path="/artisti" component={ArtistsPage} />
         <Route path="/artisti/:id" component={ArtistDetailPage} />
-        <Route path="/biglietti" component={TicketsPage} />
+        <Route path="/shop" component={ShopPage} />
+        <Route path="/biglietti" component={ShopPage} />
         {user.role === "artist" && <Route path="/dashboard" component={DashboardPage} />}
         <Route component={NotFound} />
       </Switch>

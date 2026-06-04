@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { usersTable } from "@workspace/db";
+import { usersTable, artistsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
@@ -42,6 +42,20 @@ router.post("/auth/register", async (req, res) => {
       .insert(usersTable)
       .values({ username, email, passwordHash, role: userRole, genres: genres ?? [] })
       .returning();
+
+    // If registering as artist, auto-create a linked artist profile
+    if (userRole === "artist") {
+      await db.insert(artistsTable).values({
+        name: username,
+        genre: (genres ?? [])[0] ?? "Musica",
+        city: "Italia",
+        followers: 0,
+        verified: false,
+        avatarInitials: username.slice(0, 2).toUpperCase(),
+        userId: user.id,
+        plays: 0,
+      });
+    }
 
     const sessionUser = { id: user.id, username: user.username, email: user.email, role: user.role };
     (req.session as any).user = sessionUser;
