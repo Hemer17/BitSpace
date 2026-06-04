@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BitSpace - Eventi vicino a te</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    :root{--bg:#0b0f1a;--surface:#141a2a;--text:#f5f7ff;--muted:#99a3c7;--line:rgba(255,255,255,.08);--primary:#6d5dfc;--success:#25c281;--danger:#ff6b81;--shadow:0 18px 40px rgba(0,0,0,.28)}
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden}
+    .layout{display:grid;grid-template-columns:minmax(0,1fr) 360px;height:100vh}
+    .map{position:relative;background:radial-gradient(circle at 50% 50%, rgba(109,93,252,.14), transparent 24%), linear-gradient(135deg,#101728,#0b0f1a 60%);border-right:1px solid var(--line)}
+    #map{position:absolute;inset:0;z-index:1}
+    .hud{position:absolute;top:18px;left:18px;right:18px;display:flex;justify-content:space-between;gap:12px;z-index:2;flex-wrap:wrap}
+    .pill,.back{padding:12px 14px;border-radius:14px;background:rgba(20,26,42,.9);border:1px solid var(--line);box-shadow:var(--shadow)}
+    .back{text-decoration:none;color:#fff}
+    .map-legend{position:absolute;bottom:18px;left:18px;z-index:2;padding:12px 14px;border-radius:14px;background:rgba(20,26,42,.92);border:1px solid var(--line)}
+    .sidebar{background:var(--surface);padding:20px;overflow:auto}
+    .sidebar h2{margin-bottom:8px}
+    .sidebar .muted{color:var(--muted)}
+    .list{display:grid;gap:12px;margin-top:18px}
+    .item{padding:14px;border-radius:16px;background:#0f1424;border:1px solid rgba(255,255,255,.06)}
+    .item strong{display:block;margin-bottom:6px}
+    .meta{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:14px;margin-top:8px}
+    .zoom-note{margin-top:16px;padding:14px;border-radius:16px;background:rgba(109,93,252,.12);border:1px solid rgba(109,93,252,.22)}
+
+    @media (max-width:900px){.layout{grid-template-columns:1fr}.sidebar{display:none}}
+    .leaflet-container{background:transparent}
+/* Nascondi overlay in modalità mini */
+body.mini .hud,
+body.mini .map-legend,
+body.mini .sidebar,
+body.mini .zoom-note { display: none !important; }
+
+/* Map full screen in anteprima */
+body.mini .map { 
+  background: none; 
+  border-radius: 12px; 
+  overflow: hidden; 
+}
+body.mini .leaflet-container { background: transparent !important; }
+
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <section class="map">
+      <div id="map"></div>
+      <div class="hud">
+        <div class="pill"><strong>Eventi vicino a te</strong> · muovi la mappa per esplorare entro 2 settimane</div>
+        <a class="back" href="artist-feed.html">Torna al feed</a>
+      </div>
+      <div class="map-legend">Blu = tua posizione · Verde = eventi imminenti · Rosa = eventi con biglietti quasi esauriti</div>
+    </section>
+    <aside class="sidebar">
+      <h2>Eventi ordinati per distanza</h2>
+      <p class="muted">Tutti gli eventi sono entro 14 giorni da oggi.</p>
+      <div class="zoom-note"><strong>Posizione attuale</strong><br>Napoli, Campania<br><span class="muted">Zoom consigliato 12-14 per vedere le venue vicine</span></div>
+      <div class="list">
+        <div class="item"><strong>1. Nova Echo Pulse Hall</strong><div>Concert live · 18 Maggio 2026</div><div class="meta"><span>0.8 km</span><span>Biglietti disponibili</span></div></div>
+        <div class="item"><strong>2. Jacopo Paris Arena Futura</strong><div>Tour stop · 20 Maggio 2026</div><div class="meta"><span>2.4 km</span><span>Prevendita</span></div></div>
+        <div class="item"><strong>3. Velvet Metro Sala Orion</strong><div>RB night · 22 Maggio 2026</div><div class="meta"><span>3.1 km</span><span>143 posti</span></div></div>
+        <div class="item"><strong>4. Luma Riot Dock Club</strong><div>Indie gig · 24 Maggio 2026</div><div class="meta"><span>4.7 km</span><span>Quasi esaurito</span></div></div>
+        <div class="item"><strong>5. Rhythm Atlas Moon Stage</strong><div>DJ set · 27 Maggio 2026</div><div class="meta"><span>6.2 km</span><span>Ticket drops</span></div></div>
+      </div>
+    </aside>
+  </div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+  // Funzione delayed init per iframe
+  function initMap() {
+    const map = L.map('map', { zoomControl: false, dragging: false, touchZoom: false, doubleClickZoom: false, boxZoom: false, keyboard: false })
+      .setView([40.8518, 14.2681], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '',
+      maxZoom: 13
+    }).addTo(map);
+
+    // Tua posizione (blu)
+    L.circleMarker([40.8518, 14.2681], {
+      radius: 10,
+      color: '#fff',
+      weight: 3,
+      fillColor: '#6d5dfc',
+      fillOpacity: 0.9
+    }).addTo(map).bindPopup('Napoli');
+
+    // Eventi
+    const events = [
+      { lat: 40.855, lng: 14.275, color: '#25c281', title: 'Nova Echo' },
+      { lat: 40.845, lng: 14.289, color: '#25c281', title: 'Jacopo Paris' },
+      { lat: 40.862, lng: 14.262, color: '#ff6b81', title: 'Velvet Metro' },
+      { lat: 40.84, lng: 14.247, color: '#25c281', title: 'Luma Riot' },
+      { lat: 40.87, lng: 14.255, color: '#ff6b81', title: 'Rhythm Atlas' }
+    ];
+
+    events.forEach(e => {
+      L.circleMarker([e.lat, e.lng], {
+        radius: 10,
+        color: '#fff',
+        weight: 3,
+        fillColor: e.color,
+        fillOpacity: 0.9
+      }).addTo(map).bindPopup(e.title);
+    });
+
+    // Resize per iframe piccolo
+    setTimeout(() => map.invalidateSize(), 100);
+  }
+
+  // Avvia dopo DOM + delay per iframe
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(initMap, 200));
+  } else {
+    setTimeout(initMap, 200);
+  }
+
+  // Modalità mini
+  if (new URLSearchParams(window.location.search).get('mini')) {
+    document.body.classList.add('mini');
+    document.body.style.background = 'transparent';
+  }
+</script>
+<script>
+// Rileva modalità mini e applica nascondimento
+if (new URLSearchParams(window.location.search).get('mini')) {
+  document.body.classList.add('mini');
+}
+</script>
+</body>
+</html>
