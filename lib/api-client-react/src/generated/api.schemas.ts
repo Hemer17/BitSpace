@@ -151,10 +151,34 @@ export interface TicketInput {
   eventId: number;
 }
 
+export interface MerchItem {
+  id: number;
+  artistId: number;
+  name: string;
+  category: string;
+  price: number;
+  stock: number;
+  description: string;
+  imageUrl: string;
+  badge: string;
+}
+
+export interface MerchInput {
+  artist_id?: number;
+  name: string;
+  category: string;
+  price: number;
+  stock: number;
+  description: string;
+  imageUrl?: string;
+  badge?: string;
+}
+
 export interface ArtistDashboard {
   totalFollowers: number;
   totalPlays: number;
   tourDates: number;
+  merch: number;
   followersGrowth?: number;
   playsGrowth?: number;
   recentPosts: Post[];
@@ -188,4 +212,8 @@ export type ListNearbyEventsParams = {
   lat: number;
   lng: number;
   radius?: number;
+};
+
+export type ListMerchParams = {
+  artistId?: number;
 };

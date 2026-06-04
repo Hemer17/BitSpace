@@ -307,12 +307,54 @@ export const PurchaseTicketBody = zod.object({
 });
 
 /**
+ * @summary List merchandise items
+ */
+export const ListMerchQueryParams = zod.object({
+  artistId: zod.coerce.number().optional(),
+});
+
+export const ListMerchResponseItem = zod.object({
+  id: zod.number(),
+  artistId: zod.number(),
+  name: zod.string(),
+  category: zod.string(),
+  price: zod.number(),
+  stock: zod.number(),
+  description: zod.string(),
+  imageUrl: zod.string(),
+  badge: zod.string(),
+});
+export const ListMerchResponse = zod.array(ListMerchResponseItem);
+
+/**
+ * @summary Create a merchandise item (artist only)
+ */
+export const CreateMerchItemBody = zod.object({
+  artistId: zod.number(),
+  name: zod.string(),
+  category: zod.string(),
+  price: zod.number(),
+  stock: zod.number(),
+  description: zod.string(),
+  imageUrl: zod.string().optional(),
+  badge: zod.string().optional(),
+});
+
+/**
+ * @summary Delete a merchandise item
+ */
+export const DeleteMerchItemParams = zod.object({
+  id: zod.coerce.number(),
+});
+
+/**
  * @summary Get artist dashboard statistics
  */
 export const GetArtistDashboardResponse = zod.object({
   totalFollowers: zod.number(),
   totalPlays: zod.number(),
   tourDates: zod.number(),
+  merch: zod.number(),
   followersGrowth: zod.number().optional(),
   playsGrowth: zod.number().optional(),
   recentPosts: zod.array(

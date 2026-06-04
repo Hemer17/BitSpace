@@ -1451,6 +1451,73 @@ export const usePurchaseTicket = <
   return useMutation(getPurchaseTicketMutationOptions(options));
 };
 
+export const getListMerchUrl = (params?: ListMerchParams) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? "null" : value.toString());
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0
+    ? `/api/merch?${stringifiedParams}`
+    : `/api/merch`;
+};
+
+/**
+ * @summary List merchandise items
+ */
+export const listMerch = async (
+  params?: ListMerchParams,
+  options?: RequestInit,
+): Promise<MerchItem[]> => {
+  return customFetch<MerchItem[]>(getListMerchUrl(params), {
+    ...options,
+    method: "GET",
+  });
+};
+
+export const getListMerchQueryKey = (params?: ListMerchParams) => {
+  return [`/api/merch`, ...(params ? [params] : [])] as const;
+};
+
+export const getListMerchQueryOptions = <
+  TData = Awaited<ReturnType<typeof listMerch>>,
+  TError = ErrorType<unknown>,
+>(
+  params?: ListMerchParams,
+  options?: {
+    query?: UseQueryOptions<
+      Awaited<ReturnType<typeof listMerch>>,
+      TError,
+      TData
+    >;
+    request?: SecondParameter<typeof customFetch>;
+  },
+) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+
+  const queryKey = queryOptions?.queryKey ?? getListMerchQueryKey(params);
+
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof listMerch>>> = ({
+    signal,
+  }) => listMerch(params, { signal, ...requestOptions });
+
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<
+    Awaited<ReturnType<typeof listMerch>>,
+    TError,
+    TData
+  > & { queryKey: QueryKey };
+};
+
+export type ListMerchQueryResult = NonNullable<
+  Awaited<ReturnType<typeof listMerch>>
+>;
+export type ListMerchQueryError = ErrorType<unknown>;
+
 export const getGetArtistDashboardUrl = () => {
   return `/api/stats/dashboard`;
 };

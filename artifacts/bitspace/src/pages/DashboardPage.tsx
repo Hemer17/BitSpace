@@ -19,7 +19,12 @@ import {
   FileMusic,
   IdCard,
 } from "lucide-react";
-import { useGetArtistDashboard } from "@workspace/api-client-react";
+import {
+  useGetArtistDashboard,
+  useListMerch,
+  useCreateMerchItem,
+  useDeleteMerchItem,
+} from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/AuthContext";
@@ -69,7 +74,14 @@ function StatCard({
   );
 }
 
-type Section = "overview" | "songs" | "tour" | "post" | "ban" | "gift";
+type Section =
+  | "overview"
+  | "songs"
+  | "tour"
+  | "post"
+  | "merch"
+  | "ban"
+  | "gift";
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -78,7 +90,10 @@ export default function DashboardPage() {
     isLoading,
     refetch: refetchStats,
   } = useGetArtistDashboard();
-  useQueryClient();
+  const { data: merch, isLoading: merchLoading } = useListMerch({});
+  const createMerch = useCreateMerchItem();
+  const deleteMerch = useDeleteMerchItem();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
   const [section, setSection] = useState<Section>("overview");
   const [users, setUsers] = useState<any[]>([]);
@@ -118,11 +133,22 @@ export default function DashboardPage() {
   });
   const [postLoading, setPostLoading] = useState(false);
 
+  // --- Merch form state ---
+  const [showMerchForm, setShowMerchForm] = useState(false);
+  const [merchForm, setMerchForm] = useState({
+    name: "",
+    category: "Magliette",
+    price: "",
+    stock: "",
+    description: "",
+  });
+
   // --- Gift state ---
   const [giftForm, setGiftForm] = useState({
     recipientUsername: "",
     type: "ticket",
     eventId: "",
+    merchId: "",
   });
   const [giftLoading, setGiftLoading] = useState(false);
 
@@ -245,6 +271,7 @@ export default function DashboardPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             recipientUsername: giftForm.recipientUsername,
+            merchId: parseInt(giftForm.merchId),
           }),
         });
         if (!r.ok) throw new Error((await r.json()).error);
@@ -254,6 +281,7 @@ export default function DashboardPage() {
         recipientUsername: "",
         type: "ticket",
         eventId: "",
+        merchId: "",
       });
     } catch (e: any) {
       toast({
@@ -362,6 +390,9 @@ export default function DashboardPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold">Dashboard Artista</h1>
+            <p className="text-xs text-muted-foreground">
+              {stats?.artistName ?? user?.username ?? "Caricamento..."}
+            </p>
           </div>
         </div>
 
