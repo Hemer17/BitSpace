@@ -78,54 +78,57 @@ function PostCard({ post, onRefresh }: { post: any; onRefresh: () => void }) {
               </div>}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-sm">{post.artistName ?? post.username}</span>
-            {post.artistGenre && <span className="text-xs text-muted-foreground">· {post.artistGenre}</span>}
-            <span className={cn("text-xs px-2 py-0.5 rounded-full ml-1", typeColor[post.type] ?? "bg-secondary text-muted-foreground")}>
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-sm font-semibold">{post.artistName ?? post.username}</span>
+            <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium", typeColor[post.type] ?? "bg-muted text-muted-foreground")}>
               {typeLabel[post.type] ?? post.type}
             </span>
             <span className="text-xs text-muted-foreground ml-auto">{post.timeAgo}</span>
           </div>
-          <p className="text-sm text-foreground/90 leading-relaxed mt-2">{post.content}</p>
+          <p className="text-sm text-foreground/90 leading-relaxed">{post.content}</p>
           <div className="flex items-center gap-5 mt-3">
             <button onClick={handleLike}
-              className={cn("flex items-center gap-1.5 text-xs transition-colors", liked ? "text-rose-400" : "text-muted-foreground hover:text-rose-400")}>
-              <Heart className={cn("w-4 h-4", liked && "fill-rose-400")} />{likes}
+              className={cn("flex items-center gap-1.5 text-xs transition-colors", liked ? "text-rose-500" : "text-muted-foreground hover:text-rose-400")}>
+              <Heart className={cn("w-3.5 h-3.5", liked && "fill-current")} />{likes}
             </button>
-            <button onClick={handleToggleComments} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
-              <MessageCircle className="w-4 h-4" />{(post.comments ?? 0) + localComments.filter((c) => c.author === "Tu").length}
+            <button onClick={handleToggleComments}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
+              <MessageCircle className="w-3.5 h-3.5" />{post.comments ?? 0}
             </button>
-            <button onClick={handleShare} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
-              <Repeat2 className="w-4 h-4" />{post.reposts ?? 0}
+            <button onClick={handleShare}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-emerald-400 transition-colors">
+              <Repeat2 className="w-3.5 h-3.5" />{post.reposts ?? 0}
             </button>
           </div>
-          {showComments && (
-            <div className="mt-3 border-t border-border pt-3 space-y-2">
-              {localComments.map((c, i) => (
-                <div key={i} className="flex gap-2 text-xs">
-                  <span className="font-semibold text-primary shrink-0">{c.author}</span>
-                  <span className="text-muted-foreground">{c.content}</span>
-                </div>
-              ))}
-              {localComments.length === 0 && <p className="text-xs text-muted-foreground">Nessun commento ancora</p>}
-              <div className="flex gap-2 pt-1">
-                <input value={commentText} onChange={(e) => setCommentText(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleComment()}
-                  placeholder="Scrivi un commento..."
-                  className="flex-1 bg-secondary border border-border rounded-xl px-3 py-1.5 text-xs outline-none focus:border-primary" />
-                <button onClick={handleComment} className="p-1.5 rounded-xl bg-primary text-white hover:bg-primary/90 transition-colors">
-                  <Send className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
+      {showComments && (
+        <div className="mt-3 border-t border-border pt-3 space-y-2">
+          {localComments.map((c, i) => (
+            <div key={i} className="flex gap-2 text-xs">
+              <span className="font-semibold text-primary shrink-0">{c.author}</span>
+              <span className="text-muted-foreground">{c.content}</span>
+            </div>
+          ))}
+          {localComments.length === 0 && <p className="text-xs text-muted-foreground">Nessun commento ancora</p>}
+          <div className="flex gap-2 pt-1">
+            <input value={commentText} onChange={(e) => setCommentText(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleComment()}
+              placeholder="Scrivi un commento..."
+              className="flex-1 bg-secondary border border-border rounded-xl px-3 py-1.5 text-xs outline-none focus:border-primary" />
+            <button onClick={handleComment} className="p-1.5 rounded-xl bg-primary text-white hover:bg-primary/90 transition-colors">
+              <Send className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+      )}
     </article>
   );
 }
 
 function CreatePostModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+  const { user } = useAuth();
+  const isArtist = user?.role === "artist";
   const [content, setContent] = useState("");
   const [type, setType] = useState("story");
   const [loading, setLoading] = useState(false);
@@ -136,7 +139,9 @@ function CreatePostModal({ onClose, onCreated }: { onClose: () => void; onCreate
     setLoading(true);
     try {
       const r = await fetch(`${BASE_URL}/api/posts`, {
-        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content, type }),
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content, type: isArtist ? type : "story" }),
       });
       if (!r.ok) {
         const err = await r.json();
@@ -150,7 +155,7 @@ function CreatePostModal({ onClose, onCreated }: { onClose: () => void; onCreate
     } finally { setLoading(false); }
   };
 
-  const types = [
+  const artistTypes = [
     { key: "story", label: "Racconto" }, { key: "release", label: "Uscita" },
     { key: "tour", label: "Tour" }, { key: "announcement", label: "Annuncio" },
   ];
@@ -162,17 +167,29 @@ function CreatePostModal({ onClose, onCreated }: { onClose: () => void; onCreate
           <h3 className="font-semibold text-lg">Nuovo post</h3>
           <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X className="w-5 h-5" /></button>
         </div>
-        <div className="flex gap-2 mb-3 flex-wrap">
-          {types.map(({ key, label }) => (
-            <button key={key} onClick={() => setType(key)}
-              className={cn("px-3 py-1 rounded-full text-xs font-medium transition-colors",
-                type === key ? "bg-primary text-white" : "bg-secondary text-muted-foreground hover:text-foreground")}>
-              {label}
-            </button>
-          ))}
-        </div>
+
+        {isArtist ? (
+          <div className="flex gap-2 mb-3 flex-wrap">
+            {artistTypes.map(({ key, label }) => (
+              <button key={key} onClick={() => setType(key)}
+                className={cn("px-3 py-1 rounded-full text-xs font-medium transition-colors",
+                  type === key ? "bg-primary text-white" : "bg-secondary text-muted-foreground hover:text-foreground")}>
+                {label}
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="mb-3">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-500/15 text-blue-400 rounded-full text-xs font-medium">
+              Racconto
+            </span>
+            <p className="text-xs text-muted-foreground mt-2">I fan possono pubblicare solo racconti.</p>
+          </div>
+        )}
+
         <textarea value={content} onChange={(e) => setContent(e.target.value)}
-          placeholder="Cosa vuoi condividere?" rows={4}
+          placeholder={isArtist ? "Cosa vuoi condividere?" : "Scrivi il tuo racconto..."}
+          rows={4}
           className="w-full bg-secondary border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-primary resize-none" />
         <div className="flex justify-end gap-3 mt-4">
           <button onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-muted-foreground hover:text-foreground transition-colors">Annulla</button>

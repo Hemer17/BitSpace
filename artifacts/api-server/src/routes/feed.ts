@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { postsTable, commentsTable, followsTable, artistsTable, usersTable } from "@workspace/db";
+import { postsTable, commentsTable, followsTable, artistsTable, usersTable, artistBlocksTable } from "@workspace/db";
 import { eq, inArray } from "drizzle-orm";
 
 const router = Router();
@@ -17,17 +17,22 @@ router.get("/feed", async (req, res) => {
     let posts = await db.select().from(postsTable);
 
     if (user) {
+      // Get artist IDs that have blocked this user
+      const blocks = await db.select().from(artistBlocksTable).where(eq(artistBlocksTable.blockedUserId, user.id));
+      const blockedArtistIds = new Set(blocks.map((b) => b.artistId));
+
+      // Remove posts from artists that blocked this user
+      posts = posts.filter((p) => !blockedArtistIds.has(p.artistId));
+
       // Get followed artist IDs
       const follows = await db.select().from(followsTable).where(eq(followsTable.userId, user.id));
       const followedArtistIds = follows.map((f) => f.artistId);
 
       if (followedArtistIds.length > 0) {
-        // Show posts from followed artists and own posts
         posts = posts.filter(
           (p) => followedArtistIds.includes(p.artistId) || p.userId === user.id || p.isShared
         );
       } else {
-        // No follows — filter by user's genre preferences if available
         const [dbUser] = await db.select().from(usersTable).where(eq(usersTable.id, user.id));
         const userGenres = dbUser?.genres ?? [];
         if (userGenres.length > 0) {
@@ -37,9 +42,10 @@ router.get("/feed", async (req, res) => {
             return genreLower.some((g: string) => genre.includes(g) || g.includes(genre));
           });
         }
-        // If still empty or no genre prefs, return all posts
         if (posts.length === 0) {
-          posts = await db.select().from(postsTable);
+          let all = await db.select().from(postsTable);
+          all = all.filter((p) => !blockedArtistIds.has(p.artistId));
+          posts = all;
         }
       }
     }
@@ -48,7 +54,6 @@ router.get("/feed", async (req, res) => {
       posts = posts.filter((p) => p.type === type);
     }
 
-    // Sort by newest first (higher id = newer)
     posts = posts.sort((a, b) => b.id - a.id);
 
     res.json(posts.map((p) => ({ ...p, liked: false, meta: null })));
@@ -72,7 +77,7 @@ router.get("/feed/summary", async (req, res) => {
   }
 });
 
-// Create post (any authenticated user)
+// Create post — fan utenti possono postare solo storie
 router.post("/posts", async (req, res) => {
   try {
     const user = getUser(req);
@@ -81,7 +86,9 @@ router.post("/posts", async (req, res) => {
     const { content, type } = req.body as { content: string; type?: string };
     if (!content?.trim()) return res.status(400).json({ error: "Content is required" });
 
-    // For artists, find their artist profile
+    // Non-artist users can only post stories
+    const postType = user.role !== "artist" ? "story" : (type ?? "story");
+
     let artistId = 0;
     let artistName = user.username;
     let artistGenre = "";
@@ -107,7 +114,7 @@ router.post("/posts", async (req, res) => {
         artistGenre,
         artistAvatarUrl,
         artistAvatarInitials,
-        type: type ?? "story",
+        type: postType,
         content: content.trim(),
         likes: 0,
         reposts: 0,
@@ -136,10 +143,8 @@ router.post("/posts/:id/share", async (req, res) => {
     const [original] = await db.select().from(postsTable).where(eq(postsTable.id, id));
     if (!original) return res.status(404).json({ error: "Not found" });
 
-    // Increment reposts
     await db.update(postsTable).set({ reposts: original.reposts + 1 }).where(eq(postsTable.id, id));
 
-    // Create a shared copy
     const [shared] = await db
       .insert(postsTable)
       .values({
@@ -182,7 +187,6 @@ router.post("/posts/:id/like", async (req, res) => {
   }
 });
 
-// Get comments for a post
 router.get("/posts/:id/comments", async (req, res) => {
   try {
     const postId = parseInt(req.params.id);

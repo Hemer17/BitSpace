@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Home, Map, Users, ShoppingBag, BarChart2, LogOut } from "lucide-react";
+import { Home, Map, Users, ShoppingBag, BarChart2, LogOut, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 
@@ -39,8 +39,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </Link>
           ))}
         </nav>
-        <div className="p-4 border-t border-border space-y-3">
-          <div className="flex items-center gap-3">
+        <div className="p-4 border-t border-border space-y-2">
+          <Link href="/profilo"
+            className={cn(
+              "flex items-center gap-3 w-full rounded-xl p-2 transition-colors group cursor-pointer",
+              location === "/profilo" ? "bg-primary/10" : "hover:bg-secondary"
+            )}>
             <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary shrink-0">
               {user?.username?.slice(0, 2).toUpperCase()}
             </div>
@@ -48,7 +52,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <p className="text-sm font-medium truncate">{user?.username}</p>
               <p className="text-xs text-muted-foreground capitalize">{user?.role === "artist" ? "Artista" : "Fan"}</p>
             </div>
-          </div>
+            <Settings className="w-3.5 h-3.5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+          </Link>
           <button onClick={handleLogout}
             className="flex items-center gap-2 w-full px-3 py-2 rounded-xl text-sm text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
             <LogOut className="w-4 h-4" />Esci
@@ -66,10 +71,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <Icon className="w-5 h-5" />{label}
           </Link>
         ))}
-        <button onClick={handleLogout}
-          className="flex-1 flex flex-col items-center py-3 gap-1 text-[10px] font-medium text-muted-foreground hover:text-destructive">
-          <LogOut className="w-5 h-5" />Esci
-        </button>
+        <Link href="/profilo"
+          className={cn("flex-1 flex flex-col items-center py-3 gap-1 text-[10px] font-medium transition-colors",
+            location === "/profilo" ? "text-primary" : "text-muted-foreground")}>
+          <Settings className="w-5 h-5" />Profilo
+        </Link>
       </nav>
     </div>
   );

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { artistsTable, followsTable, usersTable } from "@workspace/db";
+import { artistsTable, followsTable, usersTable, artistBlocksTable } from "@workspace/db";
 import { eq, and, inArray } from "drizzle-orm";
 
 const router = Router();
@@ -26,6 +26,61 @@ router.get("/artists/me", async (req, res) => {
     res.json(artist);
   } catch (err) {
     req.log.error({ err }, "Failed to get my artist");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// List followers of the current artist
+router.get("/artists/me/followers", async (req, res) => {
+  try {
+    const user = getUser(req);
+    if (!user) return res.status(401).json({ error: "Not authenticated" });
+    const [artist] = await db.select().from(artistsTable).where(eq(artistsTable.userId, user.id));
+    if (!artist) return res.status(404).json({ error: "No artist profile" });
+
+    const follows = await db.select().from(followsTable).where(eq(followsTable.artistId, artist.id));
+    if (!follows.length) return res.json([]);
+
+    const userIds = follows.map((f) => f.userId);
+    const users = await db
+      .select({ id: usersTable.id, username: usersTable.username, email: usersTable.email })
+      .from(usersTable)
+      .where(inArray(usersTable.id, userIds));
+
+    res.json(users);
+  } catch (err) {
+    req.log.error({ err }, "Failed to get followers");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Block a follower: remove follow + prevent seeing posts
+router.post("/artists/me/block/:userId", async (req, res) => {
+  try {
+    const user = getUser(req);
+    if (!user) return res.status(401).json({ error: "Not authenticated" });
+    const [artist] = await db.select().from(artistsTable).where(eq(artistsTable.userId, user.id));
+    if (!artist) return res.status(404).json({ error: "No artist profile" });
+
+    const targetUserId = parseInt(req.params.userId);
+
+    // Remove follow if exists
+    await db
+      .delete(followsTable)
+      .where(and(eq(followsTable.userId, targetUserId), eq(followsTable.artistId, artist.id)));
+
+    // Recalculate follower count
+    const remaining = await db.select().from(followsTable).where(eq(followsTable.artistId, artist.id));
+    await db.update(artistsTable).set({ followers: remaining.length }).where(eq(artistsTable.id, artist.id));
+
+    // Add to blocks (ignore duplicate)
+    try {
+      await db.insert(artistBlocksTable).values({ artistId: artist.id, blockedUserId: targetUserId });
+    } catch { /* unique constraint — already blocked */ }
+
+    res.json({ ok: true });
+  } catch (err) {
+    req.log.error({ err }, "Failed to block user");
     res.status(500).json({ error: "Internal server error" });
   }
 });
@@ -101,13 +156,11 @@ router.post("/artists/:id/follow", async (req, res) => {
       .where(and(eq(followsTable.userId, user.id), eq(followsTable.artistId, id)));
 
     if (existing) {
-      // Unfollow
       await db.delete(followsTable).where(eq(followsTable.id, existing.id));
       const newFollowers = Math.max(0, artist.followers - 1);
       await db.update(artistsTable).set({ followers: newFollowers }).where(eq(artistsTable.id, id));
       return res.json({ following: false, followers: newFollowers });
     } else {
-      // Follow
       await db.insert(followsTable).values({ userId: user.id, artistId: id });
       const newFollowers = artist.followers + 1;
       await db.update(artistsTable).set({ followers: newFollowers }).where(eq(artistsTable.id, id));
