@@ -1,29 +1,10 @@
 import { useState, useEffect } from "react";
 import {
-  Users,
-  Play,
-  Calendar,
-  ShoppingBag,
-  TrendingUp,
-  Plus,
-  Trash2,
-  MapPin,
-  BarChart2,
-  Music,
-  Gift,
-  Ban,
-  Send,
-  X,
-  ChevronDown,
-  ChevronUp,
-  FileMusic,
-  IdCard,
+  Users, Play, Calendar, ShoppingBag, TrendingUp, Plus, Trash2, MapPin,
+  BarChart2, Music, Gift, Ban, Send, X, ChevronDown, ChevronUp, FileMusic
 } from "lucide-react";
 import {
-  useGetArtistDashboard,
-  useListMerch,
-  useCreateMerchItem,
-  useDeleteMerchItem,
+  useGetArtistDashboard, useListMerch, useCreateMerchItem, useDeleteMerchItem,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -39,57 +20,26 @@ function formatNum(n: number) {
   return String(n);
 }
 
-function StatCard({
-  label,
-  value,
-  sub,
-  icon: Icon,
-  color,
-}: {
-  label: string;
-  value: string;
-  sub?: string;
-  icon: React.ElementType;
-  color: string;
+function StatCard({ label, value, sub, icon: Icon, color }: {
+  label: string; value: string; sub?: string; icon: React.ElementType; color: string;
 }) {
   return (
     <div className="bg-card border border-border rounded-2xl p-4">
-      <div
-        className={cn(
-          "w-9 h-9 rounded-xl flex items-center justify-center mb-3",
-          color,
-        )}
-      >
+      <div className={cn("w-9 h-9 rounded-xl flex items-center justify-center mb-3", color)}>
         <Icon className="w-4 h-4 text-white" />
       </div>
       <p className="text-2xl font-bold">{value}</p>
       <p className="text-xs text-muted-foreground mt-0.5">{label}</p>
-      {sub && (
-        <p className="text-xs text-emerald-400 flex items-center gap-1 mt-1">
-          <TrendingUp className="w-3 h-3" />
-          {sub}
-        </p>
-      )}
+      {sub && <p className="text-xs text-emerald-400 flex items-center gap-1 mt-1"><TrendingUp className="w-3 h-3" />{sub}</p>}
     </div>
   );
 }
 
-type Section =
-  | "overview"
-  | "songs"
-  | "tour"
-  | "post"
-  | "merch"
-  | "ban"
-  | "gift";
+type Section = "overview" | "songs" | "tour" | "post" | "merch" | "ban" | "gift";
 
 export default function DashboardPage() {
   const { user } = useAuth();
-  const {
-    data: stats,
-    isLoading,
-    refetch: refetchStats,
-  } = useGetArtistDashboard();
+  const { data: stats, isLoading, refetch: refetchStats } = useGetArtistDashboard();
   const { data: merch, isLoading: merchLoading } = useListMerch({});
   const createMerch = useCreateMerchItem();
   const deleteMerch = useDeleteMerchItem();
@@ -101,55 +51,28 @@ export default function DashboardPage() {
   // Load followers for the follower-block section
   useEffect(() => {
     if (section === "ban") {
-      fetch(`${BASE_URL}/api/artists/me/followers`)
-        .then((r) => r.json())
-        .then((d) => Array.isArray(d) && setUsers(d));
+      fetch(`${BASE_URL}/api/artists/me/followers`).then((r) => r.json()).then((d) => Array.isArray(d) && setUsers(d));
     }
   }, [section]);
 
   // --- Song upload state ---
-  const [songForm, setSongForm] = useState({
-    title: "",
-    duration: "",
-    genre: "",
-  });
+  const [songForm, setSongForm] = useState({ title: "", duration: "", genre: "" });
   const [songLoading, setSongLoading] = useState(false);
 
   // --- Tour date state ---
-  const [tourForm, setTourForm] = useState({
-    city: "",
-    venue: "",
-    date: "",
-    lat: "",
-    lng: "",
-    price: "",
-  });
+  const [tourForm, setTourForm] = useState({ city: "", venue: "", date: "", lat: "", lng: "", price: "" });
   const [tourLoading, setTourLoading] = useState(false);
 
   // --- New post state ---
-  const [postForm, setPostForm] = useState({
-    content: "",
-    type: "announcement",
-  });
+  const [postForm, setPostForm] = useState({ content: "", type: "announcement" });
   const [postLoading, setPostLoading] = useState(false);
 
   // --- Merch form state ---
   const [showMerchForm, setShowMerchForm] = useState(false);
-  const [merchForm, setMerchForm] = useState({
-    name: "",
-    category: "Magliette",
-    price: "",
-    stock: "",
-    description: "",
-  });
+  const [merchForm, setMerchForm] = useState({ name: "", category: "Magliette", price: "", stock: "", description: "" });
 
   // --- Gift state ---
-  const [giftForm, setGiftForm] = useState({
-    recipientUsername: "",
-    type: "ticket",
-    eventId: "",
-    merchId: "",
-  });
+  const [giftForm, setGiftForm] = useState({ recipientUsername: "", type: "ticket", eventId: "", merchId: "" });
   const [giftLoading, setGiftLoading] = useState(false);
 
   const handleUploadSong = async () => {
@@ -157,23 +80,15 @@ export default function DashboardPage() {
     setSongLoading(true);
     try {
       const r = await fetch(`${BASE_URL}/api/songs`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(songForm),
       });
       if (!r.ok) throw new Error((await r.json()).error);
       toast({ title: "Canzone caricata!" });
       setSongForm({ title: "", duration: "", genre: "" });
       refetchStats();
-    } catch (e: any) {
-      toast({
-        title: "Errore",
-        description: e.message,
-        variant: "destructive",
-      });
-    } finally {
-      setSongLoading(false);
-    }
+    } catch (e: any) { toast({ title: "Errore", description: e.message, variant: "destructive" }); }
+    finally { setSongLoading(false); }
   };
 
   const handleCreateTour = async () => {
@@ -181,8 +96,7 @@ export default function DashboardPage() {
     setTourLoading(true);
     try {
       const r = await fetch(`${BASE_URL}/api/admin/tour-stops`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...tourForm,
           lat: tourForm.lat ? parseFloat(tourForm.lat) : undefined,
@@ -192,24 +106,10 @@ export default function DashboardPage() {
       });
       if (!r.ok) throw new Error((await r.json()).error);
       toast({ title: "Data tour aggiunta!" });
-      setTourForm({
-        city: "",
-        venue: "",
-        date: "",
-        lat: "",
-        lng: "",
-        price: "",
-      });
+      setTourForm({ city: "", venue: "", date: "", lat: "", lng: "", price: "" });
       refetchStats();
-    } catch (e: any) {
-      toast({
-        title: "Errore",
-        description: e.message,
-        variant: "destructive",
-      });
-    } finally {
-      setTourLoading(false);
-    }
+    } catch (e: any) { toast({ title: "Errore", description: e.message, variant: "destructive" }); }
+    finally { setTourLoading(false); }
   };
 
   const handleCreatePost = async () => {
@@ -217,34 +117,21 @@ export default function DashboardPage() {
     setPostLoading(true);
     try {
       const r = await fetch(`${BASE_URL}/api/posts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(postForm),
       });
       if (!r.ok) throw new Error((await r.json()).error);
       toast({ title: "Post pubblicato!" });
       setPostForm({ content: "", type: "announcement" });
       refetchStats();
-    } catch (e: any) {
-      toast({
-        title: "Errore",
-        description: e.message,
-        variant: "destructive",
-      });
-    } finally {
-      setPostLoading(false);
-    }
+    } catch (e: any) { toast({ title: "Errore", description: e.message, variant: "destructive" }); }
+    finally { setPostLoading(false); }
   };
 
   const handleBlockFollower = async (userId: number, username: string) => {
-    const r = await fetch(`${BASE_URL}/api/artists/me/block/${userId}`, {
-      method: "POST",
-    });
+    const r = await fetch(`${BASE_URL}/api/artists/me/block/${userId}`, { method: "POST" });
     if (r.ok) {
-      toast({
-        title: `${username} rimosso dai follower`,
-        description: "Non potrà più vedere i tuoi post.",
-      });
+      toast({ title: `${username} rimosso dai follower`, description: "Non potrà più vedere i tuoi post." });
       setUsers((u) => u.filter((x) => x.id !== userId));
     } else {
       toast({ title: "Errore durante il blocco", variant: "destructive" });
@@ -257,78 +144,30 @@ export default function DashboardPage() {
     try {
       if (giftForm.type === "ticket") {
         const r = await fetch(`${BASE_URL}/api/tickets/gift`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            recipientUsername: giftForm.recipientUsername,
-            eventId: parseInt(giftForm.eventId),
-          }),
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recipientUsername: giftForm.recipientUsername, eventId: parseInt(giftForm.eventId) }),
         });
         if (!r.ok) throw new Error((await r.json()).error);
       } else {
         const r = await fetch(`${BASE_URL}/api/admin/gift-merch`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            recipientUsername: giftForm.recipientUsername,
-            merchId: parseInt(giftForm.merchId),
-          }),
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recipientUsername: giftForm.recipientUsername, merchId: parseInt(giftForm.merchId) }),
         });
         if (!r.ok) throw new Error((await r.json()).error);
       }
       toast({ title: "Regalo inviato!" });
-      setGiftForm({
-        recipientUsername: "",
-        type: "ticket",
-        eventId: "",
-        merchId: "",
-      });
-    } catch (e: any) {
-      toast({
-        title: "Errore",
-        description: e.message,
-        variant: "destructive",
-      });
-    } finally {
-      setGiftLoading(false);
-    }
+      setGiftForm({ recipientUsername: "", type: "ticket", eventId: "", merchId: "" });
+    } catch (e: any) { toast({ title: "Errore", description: e.message, variant: "destructive" }); }
+    finally { setGiftLoading(false); }
   };
 
   const handleCreateMerch = () => {
-    if (
-      !merchForm.name ||
-      !merchForm.price ||
-      !merchForm.stock ||
-      !merchForm.description
-    ) {
-      toast({ title: "Campi obbligatori mancanti", variant: "destructive" });
-      return;
+    if (!merchForm.name || !merchForm.price || !merchForm.stock || !merchForm.description) {
+      toast({ title: "Campi obbligatori mancanti", variant: "destructive" }); return;
     }
     createMerch.mutate(
-      {
-        data: {
-          name: merchForm.name,
-          category: merchForm.category,
-          price: parseFloat(merchForm.price),
-          stock: parseInt(merchForm.stock),
-          description: merchForm.description,
-          artist_id: 5,
-        },
-      },
-      {
-        onSuccess: () => {
-          queryClient.invalidateQueries({ queryKey: ["/api/merch"] });
-          setShowMerchForm(false);
-          setMerchForm({
-            name: "",
-            category: "Magliette",
-            price: "",
-            stock: "",
-            description: "",
-          });
-          toast({ title: "Articolo aggiunto!" });
-        },
-      },
+      { data: { name: merchForm.name, category: merchForm.category, price: parseFloat(merchForm.price), stock: parseInt(merchForm.stock), description: merchForm.description } },
+      { onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/merch"] }); setShowMerchForm(false); setMerchForm({ name: "", category: "Magliette", price: "", stock: "", description: "" }); toast({ title: "Articolo aggiunto!" }); } }
     );
   };
 
@@ -347,18 +186,10 @@ export default function DashboardPage() {
       {/* Side nav */}
       <aside className="hidden md:flex flex-col w-48 shrink-0 border-r border-border bg-card/50 pt-6 pb-4 px-3 gap-1">
         {navItems.map(({ key, label, icon: Icon }) => (
-          <button
-            key={key}
-            onClick={() => setSection(key)}
-            className={cn(
-              "flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-left transition-colors",
-              section === key
-                ? "bg-primary/15 text-primary"
-                : "text-muted-foreground hover:text-foreground hover:bg-secondary",
-            )}
-          >
-            <Icon className="w-4 h-4 shrink-0" />
-            {label}
+          <button key={key} onClick={() => setSection(key)}
+            className={cn("flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium text-left transition-colors",
+              section === key ? "bg-primary/15 text-primary" : "text-muted-foreground hover:text-foreground hover:bg-secondary")}>
+            <Icon className="w-4 h-4 shrink-0" />{label}
           </button>
         ))}
       </aside>
@@ -366,18 +197,10 @@ export default function DashboardPage() {
       {/* Mobile tab bar */}
       <div className="md:hidden flex overflow-x-auto gap-2 p-3 border-b border-border bg-card shrink-0 scrollbar-none">
         {navItems.map(({ key, label, icon: Icon }) => (
-          <button
-            key={key}
-            onClick={() => setSection(key)}
-            className={cn(
-              "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0 transition-colors",
-              section === key
-                ? "bg-primary text-white"
-                : "bg-secondary text-muted-foreground",
-            )}
-          >
-            <Icon className="w-3.5 h-3.5" />
-            {label}
+          <button key={key} onClick={() => setSection(key)}
+            className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0 transition-colors",
+              section === key ? "bg-primary text-white" : "bg-secondary text-muted-foreground")}>
+            <Icon className="w-3.5 h-3.5" />{label}
           </button>
         ))}
       </div>
@@ -390,9 +213,7 @@ export default function DashboardPage() {
           </div>
           <div>
             <h1 className="text-xl font-bold">Dashboard Artista</h1>
-            <p className="text-xs text-muted-foreground">
-              {stats?.artistName ?? user?.username ?? "Caricamento..."}
-            </p>
+            <p className="text-xs text-muted-foreground">{stats?.artistName ?? user?.username ?? "Caricamento..."}</p>
           </div>
         </div>
 
@@ -400,82 +221,32 @@ export default function DashboardPage() {
         {section === "overview" && (
           <>
             <div className="grid grid-cols-2 gap-3 mb-7">
-              {isLoading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <Skeleton key={i} className="h-28 rounded-2xl" />
-                ))
-              ) : (
+              {isLoading ? Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="h-28 rounded-2xl" />) : (
                 <>
-                  <StatCard
-                    label="Follower"
-                    value={formatNum(stats?.totalFollowers ?? 0)}
-                    sub={`+${stats?.followersGrowth}% questo mese`}
-                    icon={Users}
-                    color="bg-primary"
-                  />
-                  <StatCard
-                    label="Riproduzioni"
-                    value={formatNum(stats?.totalPlays ?? 0)}
-                    sub={`+${stats?.playsGrowth}% questo mese`}
-                    icon={Play}
-                    color="bg-emerald-600"
-                  />
-                  <StatCard
-                    label="Date tour"
-                    value={String(stats?.tourDates ?? 0)}
-                    icon={Calendar}
-                    color="bg-amber-600"
-                  />
-                  <StatCard
-                    label="Articoli merch"
-                    value={String(stats?.merch ?? 0)}
-                    icon={ShoppingBag}
-                    color="bg-violet-600"
-                  />
-                  <StatCard
-                    label="Canzoni"
-                    value={String(stats?.songs ?? 0)}
-                    icon={Music}
-                    color="bg-sky-600"
-                  />
+                  <StatCard label="Follower" value={formatNum(stats?.totalFollowers ?? 0)} sub={`+${stats?.followersGrowth}% questo mese`} icon={Users} color="bg-primary" />
+                  <StatCard label="Riproduzioni" value={formatNum(stats?.totalPlays ?? 0)} sub={`+${stats?.playsGrowth}% questo mese`} icon={Play} color="bg-emerald-600" />
+                  <StatCard label="Date tour" value={String(stats?.tourDates ?? 0)} icon={Calendar} color="bg-amber-600" />
+                  <StatCard label="Articoli merch" value={String(stats?.merch ?? 0)} icon={ShoppingBag} color="bg-violet-600" />
+                  <StatCard label="Canzoni" value={String(stats?.songs ?? 0)} icon={Music} color="bg-sky-600" />
                 </>
               )}
             </div>
             {stats?.upcomingEvents && stats.upcomingEvents.length > 0 && (
               <section className="mb-7">
                 <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest mb-3 flex items-center gap-2">
-                  <MapPin className="w-3.5 h-3.5" />
-                  Prossime date
+                  <MapPin className="w-3.5 h-3.5" />Prossime date
                 </h2>
                 <div className="space-y-2">
                   {stats.upcomingEvents.map((stop: any) => (
-                    <div
-                      key={stop.id}
-                      className="bg-card border border-border rounded-xl px-4 py-3 flex items-center justify-between"
-                    >
+                    <div key={stop.id} className="bg-card border border-border rounded-xl px-4 py-3 flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium">
-                          {stop.city} – {stop.venue}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {stop.date}
-                        </p>
+                        <p className="text-sm font-medium">{stop.city} – {stop.venue}</p>
+                        <p className="text-xs text-muted-foreground">{stop.date}</p>
                       </div>
-                      <span
-                        className={cn(
-                          "text-xs font-medium px-2.5 py-1 rounded-full",
-                          stop.status === "sold_out"
-                            ? "bg-destructive/15 text-destructive"
-                            : stop.status === "presale"
-                              ? "bg-amber-500/15 text-amber-400"
-                              : "bg-primary/15 text-primary",
-                        )}
-                      >
-                        {stop.status === "sold_out"
-                          ? "Esaurito"
-                          : stop.status === "presale"
-                            ? "Presale"
-                            : "In vendita"}
+                      <span className={cn("text-xs font-medium px-2.5 py-1 rounded-full",
+                        stop.status === "sold_out" ? "bg-destructive/15 text-destructive" :
+                        stop.status === "presale" ? "bg-amber-500/15 text-amber-400" : "bg-primary/15 text-primary")}>
+                        {stop.status === "sold_out" ? "Esaurito" : stop.status === "presale" ? "Presale" : "In vendita"}
                       </span>
                     </div>
                   ))}
@@ -484,18 +255,11 @@ export default function DashboardPage() {
             )}
             {stats?.recentPosts && stats.recentPosts.length > 0 && (
               <section>
-                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest mb-3">
-                  Post recenti
-                </h2>
+                <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest mb-3">Post recenti</h2>
                 <div className="space-y-2">
                   {stats.recentPosts.map((post: any) => (
-                    <div
-                      key={post.id}
-                      className="bg-card border border-border rounded-xl px-4 py-3"
-                    >
-                      <p className="text-xs text-muted-foreground mb-1">
-                        {post.type} · {post.timeAgo}
-                      </p>
+                    <div key={post.id} className="bg-card border border-border rounded-xl px-4 py-3">
+                      <p className="text-xs text-muted-foreground mb-1">{post.type} · {post.timeAgo}</p>
                       <p className="text-sm truncate">{post.content}</p>
                     </div>
                   ))}
@@ -509,74 +273,39 @@ export default function DashboardPage() {
         {section === "songs" && (
           <div className="space-y-5">
             <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-              <h3 className="text-sm font-semibold flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                Carica nuova canzone
-              </h3>
+              <h3 className="text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" />Carica nuova canzone</h3>
               {[
-                {
-                  key: "title",
-                  label: "Titolo *",
-                  placeholder: "Es. Notte d'estate",
-                },
+                { key: "title", label: "Titolo *", placeholder: "Es. Notte d'estate" },
                 { key: "duration", label: "Durata", placeholder: "Es. 3:45" },
-                {
-                  key: "genre",
-                  label: "Genere",
-                  placeholder: "Es. Pop, EDM...",
-                },
+                { key: "genre", label: "Genere", placeholder: "Es. Pop, EDM..." },
               ].map(({ key, label, placeholder }) => (
                 <div key={key}>
-                  <label className="text-xs text-muted-foreground mb-1 block">
-                    {label}
-                  </label>
-                  <input
-                    value={(songForm as any)[key]}
-                    onChange={(e) =>
-                      setSongForm((f) => ({ ...f, [key]: e.target.value }))
-                    }
+                  <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
+                  <input value={(songForm as any)[key]} onChange={(e) => setSongForm((f) => ({ ...f, [key]: e.target.value }))}
                     placeholder={placeholder}
-                    className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary"
-                  />
+                    className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary" />
                 </div>
               ))}
-              <button
-                onClick={handleUploadSong}
-                disabled={songLoading || !songForm.title.trim()}
-                className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
-              >
+              <button onClick={handleUploadSong} disabled={songLoading || !songForm.title.trim()}
+                className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors">
                 {songLoading ? "Caricamento..." : "Carica canzone"}
               </button>
             </div>
 
             {/* Songs list */}
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
-                Le tue canzoni ({stats?.songs ?? 0})
-              </h3>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">Le tue canzoni ({stats?.songs ?? 0})</h3>
               {(stats?.songsList ?? []).map((song: any) => (
-                <div
-                  key={song.id}
-                  className="bg-card border border-border rounded-xl px-4 py-3 flex items-center gap-3"
-                >
+                <div key={song.id} className="bg-card border border-border rounded-xl px-4 py-3 flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
                     <Music className="w-4 h-4 text-primary" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{song.title}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {song.genre} · {song.duration}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{song.genre} · {song.duration}</p>
                   </div>
-                  <button
-                    onClick={async () => {
-                      await fetch(`${BASE_URL}/api/songs/${song.id}`, {
-                        method: "DELETE",
-                      });
-                      refetchStats();
-                    }}
-                    className="text-muted-foreground hover:text-destructive transition-colors p-1.5"
-                  >
+                  <button onClick={async () => { await fetch(`${BASE_URL}/api/songs/${song.id}`, { method: "DELETE" }); refetchStats(); }}
+                    className="text-muted-foreground hover:text-destructive transition-colors p-1.5">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -589,84 +318,37 @@ export default function DashboardPage() {
         {section === "tour" && (
           <div className="space-y-5">
             <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-              <h3 className="text-sm font-semibold flex items-center gap-2">
-                <Plus className="w-4 h-4" />
-                Aggiungi data tour
-              </h3>
+              <h3 className="text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" />Aggiungi data tour</h3>
               {[
                 { key: "city", label: "Città *", placeholder: "Es. Milano" },
-                {
-                  key: "venue",
-                  label: "Venue *",
-                  placeholder: "Es. Mediolanum Forum",
-                },
-                {
-                  key: "date",
-                  label: "Data *",
-                  placeholder: "Es. 15 Ago 2026",
-                },
-                {
-                  key: "lat",
-                  label: "Latitudine (opzionale)",
-                  placeholder: "Es. 45.4654",
-                },
-                {
-                  key: "lng",
-                  label: "Longitudine (opzionale)",
-                  placeholder: "Es. 9.1859",
-                },
-                {
-                  key: "price",
-                  label: "Prezzo biglietto (€)",
-                  placeholder: "Es. 35",
-                },
+                { key: "venue", label: "Venue *", placeholder: "Es. Mediolanum Forum" },
+                { key: "date", label: "Data *", placeholder: "Es. 15 Ago 2026" },
+                { key: "lat", label: "Latitudine (opzionale)", placeholder: "Es. 45.4654" },
+                { key: "lng", label: "Longitudine (opzionale)", placeholder: "Es. 9.1859" },
+                { key: "price", label: "Prezzo biglietto (€)", placeholder: "Es. 35" },
               ].map(({ key, label, placeholder }) => (
                 <div key={key}>
-                  <label className="text-xs text-muted-foreground mb-1 block">
-                    {label}
-                  </label>
-                  <input
-                    value={(tourForm as any)[key]}
-                    onChange={(e) =>
-                      setTourForm((f) => ({ ...f, [key]: e.target.value }))
-                    }
+                  <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
+                  <input value={(tourForm as any)[key]} onChange={(e) => setTourForm((f) => ({ ...f, [key]: e.target.value }))}
                     placeholder={placeholder}
-                    className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary"
-                  />
+                    className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary" />
                 </div>
               ))}
-              <button
-                onClick={handleCreateTour}
-                disabled={
-                  tourLoading ||
-                  !tourForm.city ||
-                  !tourForm.venue ||
-                  !tourForm.date
-                }
-                className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
-              >
+              <button onClick={handleCreateTour} disabled={tourLoading || !tourForm.city || !tourForm.venue || !tourForm.date}
+                className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors">
                 {tourLoading ? "Salvataggio..." : "Aggiungi data"}
               </button>
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
-                Date ({stats?.tourDates ?? 0})
-              </h3>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">Date ({stats?.tourDates ?? 0})</h3>
               {(stats?.upcomingEvents ?? []).map((stop: any) => (
-                <div
-                  key={stop.id}
-                  className="bg-card border border-border rounded-xl px-4 py-3 flex items-center justify-between"
-                >
+                <div key={stop.id} className="bg-card border border-border rounded-xl px-4 py-3 flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-medium">
-                      {stop.city} – {stop.venue}
-                    </p>
+                    <p className="text-sm font-medium">{stop.city} – {stop.venue}</p>
                     <p className="text-xs text-muted-foreground">{stop.date}</p>
                   </div>
-                  <span className="text-xs bg-primary/15 text-primary px-2 py-0.5 rounded-full">
-                    In vendita
-                  </span>
+                  <span className="text-xs bg-primary/15 text-primary px-2 py-0.5 rounded-full">In vendita</span>
                 </div>
               ))}
             </div>
@@ -676,55 +358,30 @@ export default function DashboardPage() {
         {/* NUOVO POST */}
         {section === "post" && (
           <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-            <h3 className="text-sm font-semibold flex items-center gap-2">
-              <Send className="w-4 h-4" />
-              Crea post
-            </h3>
+            <h3 className="text-sm font-semibold flex items-center gap-2"><Send className="w-4 h-4" />Crea post</h3>
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">
-                Tipo
-              </label>
+              <label className="text-xs text-muted-foreground mb-1 block">Tipo</label>
               <div className="flex gap-2 flex-wrap">
                 {[
-                  { key: "announcement", label: "Annuncio" },
-                  { key: "release", label: "Uscita" },
-                  { key: "tour", label: "Tour" },
-                  { key: "story", label: "Racconto" },
+                  { key: "announcement", label: "Annuncio" }, { key: "release", label: "Uscita" },
+                  { key: "tour", label: "Tour" }, { key: "story", label: "Racconto" },
                 ].map(({ key, label }) => (
-                  <button
-                    key={key}
-                    onClick={() => setPostForm((f) => ({ ...f, type: key }))}
-                    className={cn(
-                      "px-3 py-1 rounded-full text-xs font-medium transition-colors",
-                      postForm.type === key
-                        ? "bg-primary text-white"
-                        : "bg-secondary text-muted-foreground hover:text-foreground",
-                    )}
-                  >
+                  <button key={key} onClick={() => setPostForm((f) => ({ ...f, type: key }))}
+                    className={cn("px-3 py-1 rounded-full text-xs font-medium transition-colors",
+                      postForm.type === key ? "bg-primary text-white" : "bg-secondary text-muted-foreground hover:text-foreground")}>
                     {label}
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">
-                Contenuto *
-              </label>
-              <textarea
-                value={postForm.content}
-                onChange={(e) =>
-                  setPostForm((f) => ({ ...f, content: e.target.value }))
-                }
-                placeholder="Scrivi il tuo post per i fan..."
-                rows={5}
-                className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary resize-none"
-              />
+              <label className="text-xs text-muted-foreground mb-1 block">Contenuto *</label>
+              <textarea value={postForm.content} onChange={(e) => setPostForm((f) => ({ ...f, content: e.target.value }))}
+                placeholder="Scrivi il tuo post per i fan..." rows={5}
+                className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary resize-none" />
             </div>
-            <button
-              onClick={handleCreatePost}
-              disabled={postLoading || !postForm.content.trim()}
-              className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
-            >
+            <button onClick={handleCreatePost} disabled={postLoading || !postForm.content.trim()}
+              className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors">
               {postLoading ? "Pubblicazione..." : "Pubblica post"}
             </button>
           </div>
@@ -733,128 +390,55 @@ export default function DashboardPage() {
         {/* MERCH */}
         {section === "merch" && (
           <div className="space-y-4">
-            <button
-              onClick={() => setShowMerchForm(!showMerchForm)}
-              className="flex items-center gap-1.5 text-xs px-4 py-2 bg-primary text-white rounded-full font-semibold hover:bg-primary/90 transition-colors"
-            >
-              <Plus className="w-3 h-3" />
-              Aggiungi articolo
+            <button onClick={() => setShowMerchForm(!showMerchForm)}
+              className="flex items-center gap-1.5 text-xs px-4 py-2 bg-primary text-white rounded-full font-semibold hover:bg-primary/90 transition-colors">
+              <Plus className="w-3 h-3" />Aggiungi articolo
             </button>
             {showMerchForm && (
               <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
                 {[
-                  {
-                    key: "name",
-                    label: "Nome",
-                    placeholder: "Es. T-shirt Tour 2026",
-                  },
+                  { key: "name", label: "Nome", placeholder: "Es. T-shirt Tour 2026" },
                   { key: "price", label: "Prezzo (€)", placeholder: "Es. 24" },
                   { key: "stock", label: "Stock", placeholder: "Es. 50" },
-                  {
-                    key: "description",
-                    label: "Descrizione",
-                    placeholder: "Descrizione breve...",
-                  },
+                  { key: "description", label: "Descrizione", placeholder: "Descrizione breve..." },
                 ].map(({ key, label, placeholder }) => (
                   <div key={key}>
-                    <label className="text-xs text-muted-foreground mb-1 block">
-                      {label}
-                    </label>
-                    <input
-                      value={(merchForm as any)[key]}
-                      onChange={(e) =>
-                        setMerchForm((f) => ({ ...f, [key]: e.target.value }))
-                      }
+                    <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
+                    <input value={(merchForm as any)[key]} onChange={(e) => setMerchForm((f) => ({ ...f, [key]: e.target.value }))}
                       placeholder={placeholder}
-                      className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary"
-                    />
+                      className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary" />
                   </div>
                 ))}
                 <div>
-                  <label className="text-xs text-muted-foreground mb-1 block">
-                    Categoria
-                  </label>
-                  <select
-                    value={merchForm.category}
-                    onChange={(e) =>
-                      setMerchForm((f) => ({ ...f, category: e.target.value }))
-                    }
-                    className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm outline-none"
-                  >
-                    {[
-                      "Magliette",
-                      "Cappelli",
-                      "Portachiavi",
-                      "Bandiere",
-                      "Poster",
-                      "Altro",
-                    ].map((c) => (
-                      <option key={c}>{c}</option>
-                    ))}
+                  <label className="text-xs text-muted-foreground mb-1 block">Categoria</label>
+                  <select value={merchForm.category} onChange={(e) => setMerchForm((f) => ({ ...f, category: e.target.value }))}
+                    className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm outline-none">
+                    {["Magliette", "Cappelli", "Portachiavi", "Bandiere", "Poster", "Altro"].map((c) => <option key={c}>{c}</option>)}
                   </select>
                 </div>
                 <div className="flex gap-2">
-                  <button
-                    onClick={handleCreateMerch}
-                    disabled={createMerch.isPending}
-                    className="flex-1 bg-primary text-white rounded-xl py-2 text-sm font-semibold hover:bg-primary/90 disabled:opacity-60 transition-colors"
-                  >
+                  <button onClick={handleCreateMerch} disabled={createMerch.isPending}
+                    className="flex-1 bg-primary text-white rounded-xl py-2 text-sm font-semibold hover:bg-primary/90 disabled:opacity-60 transition-colors">
                     {createMerch.isPending ? "..." : "Aggiungi"}
                   </button>
-                  <button
-                    onClick={() => setShowMerchForm(false)}
-                    className="px-4 bg-secondary text-muted-foreground rounded-xl py-2 text-sm"
-                  >
-                    Annulla
-                  </button>
+                  <button onClick={() => setShowMerchForm(false)} className="px-4 bg-secondary text-muted-foreground rounded-xl py-2 text-sm">Annulla</button>
                 </div>
               </div>
             )}
-            {merchLoading ? (
-              <div className="space-y-2">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-20 rounded-xl" />
-                ))}
-              </div>
-            ) : (
+            {merchLoading ? <div className="space-y-2">{[1,2,3].map((i) => <Skeleton key={i} className="h-20 rounded-xl" />)}</div> : (
               <div className="space-y-2">
                 {(merch ?? []).map((item: any) => (
-                  <div
-                    key={item.id}
-                    className="bg-card border border-border rounded-xl p-3 flex items-center gap-3"
-                  >
+                  <div key={item.id} className="bg-card border border-border rounded-xl p-3 flex items-center gap-3">
                     <div className="w-14 h-14 rounded-lg overflow-hidden shrink-0">
-                      <img
-                        src={item.imageUrl}
-                        alt={item.name}
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">
-                        {item.name}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {item.category} · Stock: {item.stock}
-                      </p>
-                      <p className="text-sm font-bold text-primary mt-0.5">
-                        €{item.price.toFixed(2)}
-                      </p>
+                      <p className="text-sm font-medium truncate">{item.name}</p>
+                      <p className="text-xs text-muted-foreground">{item.category} · Stock: {item.stock}</p>
+                      <p className="text-sm font-bold text-primary mt-0.5">€{item.price.toFixed(2)}</p>
                     </div>
-                    <button
-                      onClick={() =>
-                        deleteMerch.mutate(
-                          { id: item.id },
-                          {
-                            onSuccess: () =>
-                              queryClient.invalidateQueries({
-                                queryKey: ["/api/merch"],
-                              }),
-                          },
-                        )
-                      }
-                      className="text-muted-foreground hover:text-destructive transition-colors p-1.5"
-                    >
+                    <button onClick={() => deleteMerch.mutate({ id: item.id }, { onSuccess: () => queryClient.invalidateQueries({ queryKey: ["/api/merch"] }) })}
+                      className="text-muted-foreground hover:text-destructive transition-colors p-1.5">
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
@@ -867,76 +451,37 @@ export default function DashboardPage() {
         {/* REGALA */}
         {section === "gift" && (
           <div className="bg-card border border-border rounded-2xl p-4 space-y-4">
-            <h3 className="text-sm font-semibold flex items-center gap-2">
-              <Gift className="w-4 h-4" />
-              Regala a un utente
-            </h3>
+            <h3 className="text-sm font-semibold flex items-center gap-2"><Gift className="w-4 h-4" />Regala a un utente</h3>
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">
-                Tipo regalo
-              </label>
+              <label className="text-xs text-muted-foreground mb-1 block">Tipo regalo</label>
               <div className="flex gap-2">
-                {[
-                  { key: "ticket", label: "🎫 Biglietto" },
-                  { key: "merch", label: "👕 Merch" },
-                ].map(({ key, label }) => (
-                  <button
-                    key={key}
-                    onClick={() => setGiftForm((f) => ({ ...f, type: key }))}
-                    className={cn(
-                      "px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
-                      giftForm.type === key
-                        ? "bg-primary text-white"
-                        : "bg-secondary text-muted-foreground",
-                    )}
-                  >
+                {[{ key: "ticket", label: "🎫 Biglietto" }, { key: "merch", label: "👕 Merch" }].map(({ key, label }) => (
+                  <button key={key} onClick={() => setGiftForm((f) => ({ ...f, type: key }))}
+                    className={cn("px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
+                      giftForm.type === key ? "bg-primary text-white" : "bg-secondary text-muted-foreground")}>
                     {label}
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <label className="text-xs text-muted-foreground mb-1 block">
-                Username destinatario
-              </label>
-              <input
-                value={giftForm.recipientUsername}
-                onChange={(e) =>
-                  setGiftForm((f) => ({
-                    ...f,
-                    recipientUsername: e.target.value,
-                  }))
-                }
+              <label className="text-xs text-muted-foreground mb-1 block">Username destinatario</label>
+              <input value={giftForm.recipientUsername} onChange={(e) => setGiftForm((f) => ({ ...f, recipientUsername: e.target.value }))}
                 placeholder="Es. mario_rossi"
-                className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary"
-              />
+                className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary" />
             </div>
             {giftForm.type === "merch" && (
               <div>
-                <label className="text-xs text-muted-foreground mb-1 block">
-                  Articolo merch
-                </label>
-                <select
-                  value={giftForm.merchId}
-                  onChange={(e) =>
-                    setGiftForm((f) => ({ ...f, merchId: e.target.value }))
-                  }
-                  className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm outline-none"
-                >
+                <label className="text-xs text-muted-foreground mb-1 block">Articolo merch</label>
+                <select value={giftForm.merchId} onChange={(e) => setGiftForm((f) => ({ ...f, merchId: e.target.value }))}
+                  className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm outline-none">
                   <option value="">Seleziona...</option>
-                  {(merch ?? []).map((item: any) => (
-                    <option key={item.id} value={item.id}>
-                      {item.name} (€{item.price})
-                    </option>
-                  ))}
+                  {(merch ?? []).map((item: any) => <option key={item.id} value={item.id}>{item.name} (€{item.price})</option>)}
                 </select>
               </div>
             )}
-            <button
-              onClick={handleGift}
-              disabled={giftLoading}
-              className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors"
-            >
+            <button onClick={handleGift} disabled={giftLoading}
+              className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors">
               {giftLoading ? "Invio..." : "Invia regalo"}
             </button>
           </div>
@@ -946,13 +491,8 @@ export default function DashboardPage() {
         {section === "ban" && (
           <div className="space-y-3">
             <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">
-              <p className="text-xs text-amber-400 font-medium">
-                Gestisci i tuoi follower
-              </p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Rimuovendo un follower, non potrà più vedere i tuoi post su
-                BitSpace.
-              </p>
+              <p className="text-xs text-amber-400 font-medium">Gestisci i tuoi follower</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Rimuovendo un follower, non potrà più vedere i tuoi post su BitSpace.</p>
             </div>
             {users.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
@@ -961,10 +501,7 @@ export default function DashboardPage() {
               </div>
             )}
             {users.map((u: any) => (
-              <div
-                key={u.id}
-                className="bg-card border border-border rounded-xl px-4 py-3 flex items-center justify-between"
-              >
+              <div key={u.id} className="bg-card border border-border rounded-xl px-4 py-3 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary shrink-0">
                     {u.username.slice(0, 2).toUpperCase()}
@@ -974,12 +511,9 @@ export default function DashboardPage() {
                     <p className="text-xs text-muted-foreground">{u.email}</p>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleBlockFollower(u.id, u.username)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-secondary text-muted-foreground hover:bg-destructive/15 hover:text-destructive transition-colors"
-                >
-                  <X className="w-3 h-3" />
-                  Rimuovi
+                <button onClick={() => handleBlockFollower(u.id, u.username)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-secondary text-muted-foreground hover:bg-destructive/15 hover:text-destructive transition-colors">
+                  <X className="w-3 h-3" />Rimuovi
                 </button>
               </div>
             ))}

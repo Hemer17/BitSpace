@@ -7,7 +7,6 @@
  */
 
 export interface MerchInput {
-  artist_id?: number;
   name: string;
   category: string;
   price: number;

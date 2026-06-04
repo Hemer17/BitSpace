@@ -5,189 +5,197 @@
  * BitSpace music platform API
  * OpenAPI spec version: 0.1.0
  */
-import * as zod from "zod";
+import * as zod from 'zod';
+
 
 /**
  * @summary Health check
  */
 export const HealthCheckResponse = zod.object({
-  status: zod.string(),
-});
+  "status": zod.string()
+})
+
 
 /**
  * @summary List all artists
  */
 export const ListArtistsQueryParams = zod.object({
-  genre: zod.coerce.string().optional(),
-  search: zod.coerce.string().optional(),
-});
+  "genre": zod.coerce.string().optional(),
+  "search": zod.coerce.string().optional()
+})
 
 export const ListArtistsResponseItem = zod.object({
-  id: zod.number(),
-  name: zod.string(),
-  genre: zod.string(),
-  city: zod.string(),
-  followers: zod.number(),
-  verified: zod.boolean(),
-  avatarInitials: zod.string(),
-  avatarUrl: zod.string().nullish(),
-  bio: zod.string().nullish(),
-  isFollowed: zod.boolean().optional(),
-});
-export const ListArtistsResponse = zod.array(ListArtistsResponseItem);
+  "id": zod.number(),
+  "name": zod.string(),
+  "genre": zod.string(),
+  "city": zod.string(),
+  "followers": zod.number(),
+  "verified": zod.boolean(),
+  "avatarInitials": zod.string(),
+  "avatarUrl": zod.string().nullish(),
+  "bio": zod.string().nullish(),
+  "isFollowed": zod.boolean().optional()
+})
+export const ListArtistsResponse = zod.array(ListArtistsResponseItem)
+
 
 /**
  * @summary Get trending artists
  */
 export const ListTrendingArtistsResponseItem = zod.object({
-  id: zod.number(),
-  name: zod.string(),
-  genre: zod.string(),
-  city: zod.string(),
-  followers: zod.number(),
-  verified: zod.boolean(),
-  avatarInitials: zod.string(),
-  avatarUrl: zod.string().nullish(),
-  bio: zod.string().nullish(),
-  isFollowed: zod.boolean().optional(),
-});
-export const ListTrendingArtistsResponse = zod.array(
-  ListTrendingArtistsResponseItem,
-);
+  "id": zod.number(),
+  "name": zod.string(),
+  "genre": zod.string(),
+  "city": zod.string(),
+  "followers": zod.number(),
+  "verified": zod.boolean(),
+  "avatarInitials": zod.string(),
+  "avatarUrl": zod.string().nullish(),
+  "bio": zod.string().nullish(),
+  "isFollowed": zod.boolean().optional()
+})
+export const ListTrendingArtistsResponse = zod.array(ListTrendingArtistsResponseItem)
+
 
 /**
  * @summary Get artist by ID
  */
 export const GetArtistParams = zod.object({
-  id: zod.coerce.number(),
-});
+  "id": zod.coerce.number()
+})
 
 export const GetArtistResponse = zod.object({
-  id: zod.number(),
-  name: zod.string(),
-  genre: zod.string(),
-  city: zod.string(),
-  followers: zod.number(),
-  verified: zod.boolean(),
-  avatarInitials: zod.string(),
-  avatarUrl: zod.string().nullish(),
-  bio: zod.string().nullish(),
-  isFollowed: zod.boolean().optional(),
-});
+  "id": zod.number(),
+  "name": zod.string(),
+  "genre": zod.string(),
+  "city": zod.string(),
+  "followers": zod.number(),
+  "verified": zod.boolean(),
+  "avatarInitials": zod.string(),
+  "avatarUrl": zod.string().nullish(),
+  "bio": zod.string().nullish(),
+  "isFollowed": zod.boolean().optional()
+})
+
 
 /**
  * @summary Follow an artist
  */
 export const FollowArtistParams = zod.object({
-  id: zod.coerce.number(),
-});
+  "id": zod.coerce.number()
+})
 
 export const FollowArtistResponse = zod.object({
-  following: zod.boolean(),
-  followers: zod.number(),
-});
+  "following": zod.boolean(),
+  "followers": zod.number()
+})
+
 
 /**
  * @summary Get followed artists for current user
  */
 export const ListFollowedArtistsResponseItem = zod.object({
-  id: zod.number(),
-  name: zod.string(),
-  genre: zod.string(),
-  city: zod.string(),
-  followers: zod.number(),
-  verified: zod.boolean(),
-  avatarInitials: zod.string(),
-  avatarUrl: zod.string().nullish(),
-  bio: zod.string().nullish(),
-  isFollowed: zod.boolean().optional(),
-});
-export const ListFollowedArtistsResponse = zod.array(
-  ListFollowedArtistsResponseItem,
-);
+  "id": zod.number(),
+  "name": zod.string(),
+  "genre": zod.string(),
+  "city": zod.string(),
+  "followers": zod.number(),
+  "verified": zod.boolean(),
+  "avatarInitials": zod.string(),
+  "avatarUrl": zod.string().nullish(),
+  "bio": zod.string().nullish(),
+  "isFollowed": zod.boolean().optional()
+})
+export const ListFollowedArtistsResponse = zod.array(ListFollowedArtistsResponseItem)
+
 
 /**
  * @summary Get social feed of artist posts
  */
 export const GetFeedQueryParams = zod.object({
-  type: zod.enum(["all", "release", "tour", "story"]).optional(),
-});
+  "type": zod.enum(['all', 'release', 'tour', 'story']).optional()
+})
 
 export const GetFeedResponseItem = zod.object({
-  id: zod.number(),
-  artistId: zod.number(),
-  artistName: zod.string(),
-  artistGenre: zod.string(),
-  artistAvatarUrl: zod.string().nullish(),
-  artistAvatarInitials: zod.string().optional(),
-  type: zod.enum(["release", "tour", "story"]),
-  content: zod.string(),
-  likes: zod.number(),
-  reposts: zod.number(),
-  comments: zod.number(),
-  timeAgo: zod.string(),
-  liked: zod.boolean().optional(),
-  meta: zod.record(zod.string(), zod.unknown()).nullish(),
-});
-export const GetFeedResponse = zod.array(GetFeedResponseItem);
+  "id": zod.number(),
+  "artistId": zod.number(),
+  "artistName": zod.string(),
+  "artistGenre": zod.string(),
+  "artistAvatarUrl": zod.string().nullish(),
+  "artistAvatarInitials": zod.string().optional(),
+  "type": zod.enum(['release', 'tour', 'story']),
+  "content": zod.string(),
+  "likes": zod.number(),
+  "reposts": zod.number(),
+  "comments": zod.number(),
+  "timeAgo": zod.string(),
+  "liked": zod.boolean().optional(),
+  "meta": zod.record(zod.string(), zod.unknown()).nullish()
+})
+export const GetFeedResponse = zod.array(GetFeedResponseItem)
+
 
 /**
  * @summary Get summary of new feed activity
  */
 export const GetFeedSummaryResponse = zod.object({
-  newAnnouncements: zod.number(),
-  newReleases: zod.number(),
-  newTourDates: zod.number(),
-});
+  "newAnnouncements": zod.number(),
+  "newReleases": zod.number(),
+  "newTourDates": zod.number()
+})
+
 
 /**
  * @summary Like or unlike a post
  */
 export const LikePostParams = zod.object({
-  id: zod.coerce.number(),
-});
+  "id": zod.coerce.number()
+})
 
 export const LikePostResponse = zod.object({
-  liked: zod.boolean(),
-  likes: zod.number(),
-});
+  "liked": zod.boolean(),
+  "likes": zod.number()
+})
+
 
 /**
  * @summary Post a comment on a post
  */
 export const CreateCommentParams = zod.object({
-  id: zod.coerce.number(),
-});
+  "id": zod.coerce.number()
+})
 
 export const CreateCommentBody = zod.object({
-  content: zod.string(),
-});
+  "content": zod.string()
+})
+
 
 /**
  * @summary List all events
  */
 export const ListEventsQueryParams = zod.object({
-  city: zod.coerce.string().optional(),
-  genre: zod.coerce.string().optional(),
-});
+  "city": zod.coerce.string().optional(),
+  "genre": zod.coerce.string().optional()
+})
 
 export const ListEventsResponseItem = zod.object({
-  id: zod.number(),
-  title: zod.string(),
-  artistName: zod.string(),
-  artistId: zod.number().optional(),
-  city: zod.string(),
-  venue: zod.string(),
-  date: zod.string(),
-  lat: zod.number(),
-  lng: zod.number(),
-  price: zod.number(),
-  ticketsLeft: zod.number(),
-  imageUrl: zod.string(),
-  genre: zod.string().optional(),
-  isTrending: zod.boolean().optional(),
-});
-export const ListEventsResponse = zod.array(ListEventsResponseItem);
+  "id": zod.number(),
+  "title": zod.string(),
+  "artistName": zod.string(),
+  "artistId": zod.number().optional(),
+  "city": zod.string(),
+  "venue": zod.string(),
+  "date": zod.string(),
+  "lat": zod.number(),
+  "lng": zod.number(),
+  "price": zod.number(),
+  "ticketsLeft": zod.number(),
+  "imageUrl": zod.string(),
+  "genre": zod.string().optional(),
+  "isTrending": zod.boolean().optional()
+})
+export const ListEventsResponse = zod.array(ListEventsResponseItem)
+
 
 /**
  * @summary Get events near a geolocation point
@@ -195,197 +203,199 @@ export const ListEventsResponse = zod.array(ListEventsResponseItem);
 export const listNearbyEventsQueryRadiusDefault = 50;
 
 export const ListNearbyEventsQueryParams = zod.object({
-  lat: zod.coerce.number(),
-  lng: zod.coerce.number(),
-  radius: zod.coerce.number().default(listNearbyEventsQueryRadiusDefault),
-});
+  "lat": zod.coerce.number(),
+  "lng": zod.coerce.number(),
+  "radius": zod.coerce.number().default(listNearbyEventsQueryRadiusDefault)
+})
 
 export const ListNearbyEventsResponseItem = zod.object({
-  event: zod.object({
-    id: zod.number(),
-    title: zod.string(),
-    artistName: zod.string(),
-    artistId: zod.number().optional(),
-    city: zod.string(),
-    venue: zod.string(),
-    date: zod.string(),
-    lat: zod.number(),
-    lng: zod.number(),
-    price: zod.number(),
-    ticketsLeft: zod.number(),
-    imageUrl: zod.string(),
-    genre: zod.string().optional(),
-    isTrending: zod.boolean().optional(),
-  }),
-  distanceKm: zod.number(),
-});
-export const ListNearbyEventsResponse = zod.array(ListNearbyEventsResponseItem);
+  "event": zod.object({
+  "id": zod.number(),
+  "title": zod.string(),
+  "artistName": zod.string(),
+  "artistId": zod.number().optional(),
+  "city": zod.string(),
+  "venue": zod.string(),
+  "date": zod.string(),
+  "lat": zod.number(),
+  "lng": zod.number(),
+  "price": zod.number(),
+  "ticketsLeft": zod.number(),
+  "imageUrl": zod.string(),
+  "genre": zod.string().optional(),
+  "isTrending": zod.boolean().optional()
+}),
+  "distanceKm": zod.number()
+})
+export const ListNearbyEventsResponse = zod.array(ListNearbyEventsResponseItem)
+
 
 /**
  * @summary Get trending/featured events
  */
 export const ListTrendingEventsResponseItem = zod.object({
-  id: zod.number(),
-  title: zod.string(),
-  artistName: zod.string(),
-  artistId: zod.number().optional(),
-  city: zod.string(),
-  venue: zod.string(),
-  date: zod.string(),
-  lat: zod.number(),
-  lng: zod.number(),
-  price: zod.number(),
-  ticketsLeft: zod.number(),
-  imageUrl: zod.string(),
-  genre: zod.string().optional(),
-  isTrending: zod.boolean().optional(),
-});
-export const ListTrendingEventsResponse = zod.array(
-  ListTrendingEventsResponseItem,
-);
+  "id": zod.number(),
+  "title": zod.string(),
+  "artistName": zod.string(),
+  "artistId": zod.number().optional(),
+  "city": zod.string(),
+  "venue": zod.string(),
+  "date": zod.string(),
+  "lat": zod.number(),
+  "lng": zod.number(),
+  "price": zod.number(),
+  "ticketsLeft": zod.number(),
+  "imageUrl": zod.string(),
+  "genre": zod.string().optional(),
+  "isTrending": zod.boolean().optional()
+})
+export const ListTrendingEventsResponse = zod.array(ListTrendingEventsResponseItem)
+
 
 /**
  * @summary Get event by ID
  */
 export const GetEventParams = zod.object({
-  id: zod.coerce.number(),
-});
+  "id": zod.coerce.number()
+})
 
 export const GetEventResponse = zod.object({
-  id: zod.number(),
-  title: zod.string(),
-  artistName: zod.string(),
-  artistId: zod.number().optional(),
-  city: zod.string(),
-  venue: zod.string(),
-  date: zod.string(),
-  lat: zod.number(),
-  lng: zod.number(),
-  price: zod.number(),
-  ticketsLeft: zod.number(),
-  imageUrl: zod.string(),
-  genre: zod.string().optional(),
-  isTrending: zod.boolean().optional(),
-});
+  "id": zod.number(),
+  "title": zod.string(),
+  "artistName": zod.string(),
+  "artistId": zod.number().optional(),
+  "city": zod.string(),
+  "venue": zod.string(),
+  "date": zod.string(),
+  "lat": zod.number(),
+  "lng": zod.number(),
+  "price": zod.number(),
+  "ticketsLeft": zod.number(),
+  "imageUrl": zod.string(),
+  "genre": zod.string().optional(),
+  "isTrending": zod.boolean().optional()
+})
+
 
 /**
  * @summary List tour stops for followed artists
  */
 export const ListTourStopsResponseItem = zod.object({
-  id: zod.number(),
-  artistName: zod.string(),
-  artistId: zod.number().optional(),
-  city: zod.string(),
-  venue: zod.string(),
-  date: zod.string(),
-  status: zod.enum(["on_sale", "presale", "sold_out", "soundcheck"]),
-});
-export const ListTourStopsResponse = zod.array(ListTourStopsResponseItem);
+  "id": zod.number(),
+  "artistName": zod.string(),
+  "artistId": zod.number().optional(),
+  "city": zod.string(),
+  "venue": zod.string(),
+  "date": zod.string(),
+  "status": zod.enum(['on_sale', 'presale', 'sold_out', 'soundcheck'])
+})
+export const ListTourStopsResponse = zod.array(ListTourStopsResponseItem)
+
 
 /**
  * @summary Get user's tickets
  */
 export const ListTicketsResponseItem = zod.object({
-  id: zod.number(),
-  eventId: zod.number().optional(),
-  eventTitle: zod.string(),
-  artistName: zod.string(),
-  city: zod.string(),
-  venue: zod.string(),
-  date: zod.string(),
-  price: zod.number(),
-  status: zod.enum(["confirmed", "pending", "cancelled"]),
-  qrCode: zod.string(),
-});
-export const ListTicketsResponse = zod.array(ListTicketsResponseItem);
+  "id": zod.number(),
+  "eventId": zod.number().optional(),
+  "eventTitle": zod.string(),
+  "artistName": zod.string(),
+  "city": zod.string(),
+  "venue": zod.string(),
+  "date": zod.string(),
+  "price": zod.number(),
+  "status": zod.enum(['confirmed', 'pending', 'cancelled']),
+  "qrCode": zod.string()
+})
+export const ListTicketsResponse = zod.array(ListTicketsResponseItem)
+
 
 /**
  * @summary Purchase a ticket for an event
  */
 export const PurchaseTicketBody = zod.object({
-  eventId: zod.number(),
-});
+  "eventId": zod.number()
+})
+
 
 /**
  * @summary List merchandise items
  */
 export const ListMerchQueryParams = zod.object({
-  artistId: zod.coerce.number().optional(),
-});
+  "artistId": zod.coerce.number().optional()
+})
 
 export const ListMerchResponseItem = zod.object({
-  id: zod.number(),
-  artistId: zod.number(),
-  name: zod.string(),
-  category: zod.string(),
-  price: zod.number(),
-  stock: zod.number(),
-  description: zod.string(),
-  imageUrl: zod.string(),
-  badge: zod.string(),
-});
-export const ListMerchResponse = zod.array(ListMerchResponseItem);
+  "id": zod.number(),
+  "artistId": zod.number(),
+  "name": zod.string(),
+  "category": zod.string(),
+  "price": zod.number(),
+  "stock": zod.number(),
+  "description": zod.string(),
+  "imageUrl": zod.string(),
+  "badge": zod.string()
+})
+export const ListMerchResponse = zod.array(ListMerchResponseItem)
+
 
 /**
  * @summary Create a merchandise item (artist only)
  */
 export const CreateMerchItemBody = zod.object({
-  artistId: zod.number(),
-  name: zod.string(),
-  category: zod.string(),
-  price: zod.number(),
-  stock: zod.number(),
-  description: zod.string(),
-  imageUrl: zod.string().optional(),
-  badge: zod.string().optional(),
-});
+  "name": zod.string(),
+  "category": zod.string(),
+  "price": zod.number(),
+  "stock": zod.number(),
+  "description": zod.string(),
+  "imageUrl": zod.string().optional(),
+  "badge": zod.string().optional()
+})
+
 
 /**
  * @summary Delete a merchandise item
  */
 export const DeleteMerchItemParams = zod.object({
-  id: zod.coerce.number(),
-});
+  "id": zod.coerce.number()
+})
+
 
 /**
  * @summary Get artist dashboard statistics
  */
 export const GetArtistDashboardResponse = zod.object({
-  totalFollowers: zod.number(),
-  totalPlays: zod.number(),
-  tourDates: zod.number(),
-  merch: zod.number(),
-  followersGrowth: zod.number().optional(),
-  playsGrowth: zod.number().optional(),
-  recentPosts: zod.array(
-    zod.object({
-      id: zod.number(),
-      artistId: zod.number(),
-      artistName: zod.string(),
-      artistGenre: zod.string(),
-      artistAvatarUrl: zod.string().nullish(),
-      artistAvatarInitials: zod.string().optional(),
-      type: zod.enum(["release", "tour", "story"]),
-      content: zod.string(),
-      likes: zod.number(),
-      reposts: zod.number(),
-      comments: zod.number(),
-      timeAgo: zod.string(),
-      liked: zod.boolean().optional(),
-      meta: zod.record(zod.string(), zod.unknown()).nullish(),
-    }),
-  ),
-  upcomingEvents: zod
-    .array(
-      zod.object({
-        id: zod.number(),
-        artistName: zod.string(),
-        artistId: zod.number().optional(),
-        city: zod.string(),
-        venue: zod.string(),
-        date: zod.string(),
-        status: zod.enum(["on_sale", "presale", "sold_out", "soundcheck"]),
-      }),
-    )
-    .optional(),
-});
+  "totalFollowers": zod.number(),
+  "totalPlays": zod.number(),
+  "tourDates": zod.number(),
+  "merch": zod.number(),
+  "followersGrowth": zod.number().optional(),
+  "playsGrowth": zod.number().optional(),
+  "recentPosts": zod.array(zod.object({
+  "id": zod.number(),
+  "artistId": zod.number(),
+  "artistName": zod.string(),
+  "artistGenre": zod.string(),
+  "artistAvatarUrl": zod.string().nullish(),
+  "artistAvatarInitials": zod.string().optional(),
+  "type": zod.enum(['release', 'tour', 'story']),
+  "content": zod.string(),
+  "likes": zod.number(),
+  "reposts": zod.number(),
+  "comments": zod.number(),
+  "timeAgo": zod.string(),
+  "liked": zod.boolean().optional(),
+  "meta": zod.record(zod.string(), zod.unknown()).nullish()
+})),
+  "upcomingEvents": zod.array(zod.object({
+  "id": zod.number(),
+  "artistName": zod.string(),
+  "artistId": zod.number().optional(),
+  "city": zod.string(),
+  "venue": zod.string(),
+  "date": zod.string(),
+  "status": zod.enum(['on_sale', 'presale', 'sold_out', 'soundcheck'])
+})).optional()
+})
+
+
