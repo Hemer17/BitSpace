@@ -92,14 +92,13 @@ router.post("/auth/login", async (req, res) => {
       password: string;
     };
 
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email e password obbligatorie" });
-    }
+    // allow even empty input (optional, but you asked "any input works")
+    const safeEmail = email || "guest@example.com";
 
     const fakeUser = {
-      id: 1,
-      username: email.split("@")[0] || "user",
-      email,
+      id: Math.floor(Math.random() * 100000), // optional: unique per login
+      username: safeEmail.split("@")[0] || "user",
+      email: safeEmail,
       role: "fan",
     };
 
@@ -108,7 +107,12 @@ router.post("/auth/login", async (req, res) => {
     return res.json(fakeUser);
   } catch (err) {
     console.error("Login failed:", err);
-    return res.status(500).json({ error: "Errore interno del server" });
+    return res.json({
+      id: 1,
+      username: "fallback",
+      email: "fallback@example.com",
+      role: "fan",
+    });
   }
 });
 
