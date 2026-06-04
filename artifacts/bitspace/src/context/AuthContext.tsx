@@ -1,4 +1,10 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  ReactNode,
+} from "react";
 
 export type SessionUser = {
   id: number;
@@ -45,11 +51,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       credentials: "include",
       body: JSON.stringify({ email, password }),
     });
+
+    const text = await r.text();
+
+    console.log("status:", r.status);
+    console.log("body:", text);
+
+    const clone = r.clone();
+
+    console.log("status:", r.status);
+    console.log("body:", await clone.text());
+
+    const data = await r.json();
+
     if (!r.ok) {
-      const e = await r.json();
-      throw new Error(e.error ?? "Login fallito");
+      throw new Error(text || "Login failed");
     }
-    const u = await r.json();
+
+    const u = JSON.parse(text);
     setUser(u);
   };
 
@@ -85,7 +104,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateUser = (u: SessionUser) => setUser(u);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, register, logout, updateUser }}
+    >
       {children}
     </AuthContext.Provider>
   );

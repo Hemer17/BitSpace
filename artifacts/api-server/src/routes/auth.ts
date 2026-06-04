@@ -7,7 +7,9 @@ import bcrypt from "bcryptjs";
 const router = Router();
 
 function getUser(req: any) {
-  return (req.session as any)?.user as { id: number; username: string; email: string; role: string } | undefined;
+  return (req.session as any)?.user as
+    | { id: number; username: string; email: string; role: string }
+    | undefined;
 }
 
 router.get("/auth/me", (req, res) => {
@@ -27,7 +29,9 @@ router.post("/auth/register", async (req, res) => {
     };
 
     if (!username || !email || !password) {
-      return res.status(400).json({ error: "Username, email e password sono obbligatori" });
+      return res
+        .status(400)
+        .json({ error: "Username, email e password sono obbligatori" });
     }
 
     const [existing] = await db
@@ -44,7 +48,13 @@ router.post("/auth/register", async (req, res) => {
 
     const [user] = await db
       .insert(usersTable)
-      .values({ username, email, passwordHash, role: userRole, genres: genres ?? [] })
+      .values({
+        username,
+        email,
+        passwordHash,
+        role: userRole,
+        genres: genres ?? [],
+      })
       .returning();
 
     if (userRole === "artist") {
@@ -60,7 +70,12 @@ router.post("/auth/register", async (req, res) => {
       });
     }
 
-    const sessionUser = { id: user.id, username: user.username, email: user.email, role: user.role };
+    const sessionUser = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+    };
     (req.session as any).user = sessionUser;
 
     res.status(201).json(sessionUser);
@@ -92,12 +107,17 @@ router.post("/auth/login", async (req, res) => {
       return res.status(401).json({ error: "Credenziali non valide" });
     }
 
-    const sessionUser = { id: user.id, username: user.username, email: user.email, role: user.role };
+    const sessionUser = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
+    };
     (req.session as any).user = sessionUser;
 
     res.json(sessionUser);
   } catch (err) {
-    req.log.error({ err }, "Login failed");
+    (req as any).log?.error?.({ err }, "Login failed");
     res.status(500).json({ error: "Errore interno del server" });
   }
 });
@@ -125,7 +145,8 @@ router.put("/auth/profile", async (req, res) => {
     if (username?.trim()) updates.username = username.trim();
     if (email?.trim()) updates.email = email.trim();
     if (genres !== undefined) updates.genres = genres;
-    if (password?.trim()) updates.passwordHash = await bcrypt.hash(password.trim(), 10);
+    if (password?.trim())
+      updates.passwordHash = await bcrypt.hash(password.trim(), 10);
 
     if (!Object.keys(updates).length) {
       return res.status(400).json({ error: "Nessun campo da aggiornare" });
@@ -133,7 +154,10 @@ router.put("/auth/profile", async (req, res) => {
 
     // Check email unique if changing
     if (updates.email && updates.email !== user.email) {
-      const [existing] = await db.select().from(usersTable).where(eq(usersTable.email, updates.email));
+      const [existing] = await db
+        .select()
+        .from(usersTable)
+        .where(eq(usersTable.email, updates.email));
       if (existing) return res.status(409).json({ error: "Email già in uso" });
     }
 
@@ -145,10 +169,18 @@ router.put("/auth/profile", async (req, res) => {
 
     // Also update artist name if artist and username changed
     if (updates.username && user.role === "artist") {
-      await db.update(artistsTable).set({ name: updates.username }).where(eq(artistsTable.userId, user.id));
+      await db
+        .update(artistsTable)
+        .set({ name: updates.username })
+        .where(eq(artistsTable.userId, user.id));
     }
 
-    const sessionUser = { id: updated.id, username: updated.username, email: updated.email, role: updated.role };
+    const sessionUser = {
+      id: updated.id,
+      username: updated.username,
+      email: updated.email,
+      role: updated.role,
+    };
     (req.session as any).user = sessionUser;
 
     res.json(sessionUser);
