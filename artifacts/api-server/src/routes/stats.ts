@@ -1,12 +1,20 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { artistsTable, postsTable, tourStopsTable, merchTable, followsTable, songsTable } from "@workspace/db";
+import {
+  artistsTable,
+  postsTable,
+  tourStopsTable,
+  followsTable,
+  songsTable,
+} from "@workspace/db";
 import { eq } from "drizzle-orm";
 
 const router = Router();
 
 function getUser(req: any) {
-  return (req.session as any)?.user as { id: number; username: string; role: string } | undefined;
+  return (req.session as any)?.user as
+    | { id: number; username: string; role: string }
+    | undefined;
 }
 
 router.get("/stats/dashboard", async (req, res) => {
@@ -15,7 +23,10 @@ router.get("/stats/dashboard", async (req, res) => {
 
     let artist;
     if (user && user.role === "artist") {
-      const [linked] = await db.select().from(artistsTable).where(eq(artistsTable.userId, user.id));
+      const [linked] = await db
+        .select()
+        .from(artistsTable)
+        .where(eq(artistsTable.userId, user.id));
       artist = linked;
     }
     // Fallback: first artist if no linked profile found
@@ -25,13 +36,25 @@ router.get("/stats/dashboard", async (req, res) => {
     }
 
     const artistId = artist?.id ?? 1;
-    const stops = await db.select().from(tourStopsTable).where(eq(tourStopsTable.artistId, artistId));
-    const merch = await db.select().from(merchTable).where(eq(merchTable.artistId, artistId));
-    const posts = await db.select().from(postsTable).where(eq(postsTable.artistId, artistId));
-    const songs = await db.select().from(songsTable).where(eq(songsTable.artistId, artistId));
+    const stops = await db
+      .select()
+      .from(tourStopsTable)
+      .where(eq(tourStopsTable.artistId, artistId));
+
+    const posts = await db
+      .select()
+      .from(postsTable)
+      .where(eq(postsTable.artistId, artistId));
+    const songs = await db
+      .select()
+      .from(songsTable)
+      .where(eq(songsTable.artistId, artistId));
 
     // Follower count from follows table
-    const allFollows = await db.select().from(followsTable).where(eq(followsTable.artistId, artistId));
+    const allFollows = await db
+      .select()
+      .from(followsTable)
+      .where(eq(followsTable.artistId, artistId));
 
     res.json({
       artistId,
@@ -39,11 +62,13 @@ router.get("/stats/dashboard", async (req, res) => {
       totalFollowers: allFollows.length || (artist?.followers ?? 0),
       totalPlays: artist?.plays ?? 3240000,
       tourDates: stops.length,
-      merch: merch.length,
       songs: songs.length,
       followersGrowth: 4.2,
       playsGrowth: 12.1,
-      recentPosts: posts.slice(-3).reverse().map((p) => ({ ...p, liked: false })),
+      recentPosts: posts
+        .slice(-3)
+        .reverse()
+        .map((p) => ({ ...p, liked: false })),
       upcomingEvents: stops,
       songsList: songs,
     });

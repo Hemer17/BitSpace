@@ -5,14 +5,13 @@
  * BitSpace music platform API
  * OpenAPI spec version: 0.1.0
  */
-import type { Post } from './post';
-import type { TourStop } from './tourStop';
+import type { Post } from "./post";
+import type { TourStop } from "./tourStop";
 
 export interface ArtistDashboard {
   totalFollowers: number;
   totalPlays: number;
   tourDates: number;
-  merch: number;
   followersGrowth?: number;
   playsGrowth?: number;
   recentPosts: Post[];

@@ -19,10 +19,8 @@ export * from './healthStatus';
 export * from './likeResult';
 export * from './listArtistsParams';
 export * from './listEventsParams';
-export * from './listMerchParams';
 export * from './listNearbyEventsParams';
-export * from './merchInput';
-export * from './merchItem';
+
 export * from './nearbyEvent';
 export * from './post';
 export * from './postMeta';
