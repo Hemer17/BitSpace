@@ -4,9 +4,9 @@ import { z } from "zod/v4";
 
 export const postsTable = pgTable("posts", {
   id: serial("id").primaryKey(),
-  artistId: integer("artist_id").notNull(),
+  artistId: integer("artist_id").notNull().default(0),
   artistName: text("artist_name").notNull(),
-  artistGenre: text("artist_genre").notNull(),
+  artistGenre: text("artist_genre").notNull().default(""),
   artistAvatarUrl: text("artist_avatar_url"),
   artistAvatarInitials: text("artist_avatar_initials").notNull(),
   type: text("type").notNull().default("story"),
@@ -15,6 +15,10 @@ export const postsTable = pgTable("posts", {
   reposts: integer("reposts").notNull().default(0),
   comments: integer("comments").notNull().default(0),
   timeAgo: text("time_ago").notNull(),
+  userId: integer("user_id"),
+  username: text("username"),
+  isShared: boolean("is_shared").notNull().default(false),
+  sharedFromId: integer("shared_from_id"),
 });
 
 export const commentsTable = pgTable("comments", {
@@ -23,6 +27,7 @@ export const commentsTable = pgTable("comments", {
   author: text("author").notNull(),
   content: text("content").notNull(),
   timeAgo: text("time_ago").notNull().default("just now"),
+  userId: integer("user_id"),
 });
 
 export const insertPostSchema = createInsertSchema(postsTable).omit({ id: true });
