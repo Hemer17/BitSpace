@@ -13,6 +13,7 @@ import ArtistsPage from "@/pages/ArtistsPage";
 import ArtistDetailPage from "@/pages/ArtistDetailPage";
 import ShopPage from "@/pages/ShopPage";
 import DashboardPage from "@/pages/DashboardPage";
+import ProfilePage from "@/pages/ProfilePage";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -51,6 +52,7 @@ function AppRouter() {
         <Route path="/shop" component={ShopPage} />
         <Route path="/biglietti" component={ShopPage} />
         {user.role === "artist" && <Route path="/dashboard" component={DashboardPage} />}
+        <Route path="/profilo" component={ProfilePage} />
         <Route component={NotFound} />
       </Switch>
     </Layout>

@@ -7,3 +7,4 @@ export * from "./tour_stops";
 export * from "./users";
 export * from "./follows";
 export * from "./songs";
+export * from "./artist_blocks";

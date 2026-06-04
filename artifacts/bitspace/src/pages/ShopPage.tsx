@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Ticket, Calendar, MapPin, QrCode, ShoppingCart, ShoppingBag, Tag, AlertCircle } from "lucide-react";
 import { useListTickets, usePurchaseTicket, useListEvents } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -64,10 +64,9 @@ export default function ShopPage() {
   const [shopData, setShopData] = useState<{ events: any[]; merch: any[] } | null>(null);
   const [tab, setTab] = useState<"biglietti" | "merch" | "miei">("biglietti");
 
-  // Load shop data (events + followed merch)
-  useState(() => {
+  useEffect(() => {
     fetch(`${BASE_URL}/api/shop`).then((r) => r.json()).then(setShopData).catch(() => { });
-  });
+  }, []);
 
   const handleBuy = (eventId: number, eventTitle: string) => {
     setBuyingId(eventId);
@@ -75,8 +74,20 @@ export default function ShopPage() {
       { data: { eventId } },
       {
         onSuccess: () => {
+          // Optimistic real-time update — decrement ticketsLeft immediately
+          setShopData((prev) => prev ? {
+            ...prev,
+            events: prev.events.map((e) =>
+              e.id === eventId ? { ...e, ticketsLeft: Math.max(0, (e.ticketsLeft ?? 1) - 1) } : e
+            ),
+          } : prev);
+          queryClient.setQueryData(["/api/events"], (old: any) => {
+            if (!Array.isArray(old)) return old;
+            return old.map((e: any) =>
+              e.id === eventId ? { ...e, ticketsLeft: Math.max(0, (e.ticketsLeft ?? 1) - 1) } : e
+            );
+          });
           queryClient.invalidateQueries({ queryKey: ["/api/tickets"] });
-          queryClient.invalidateQueries({ queryKey: ["/api/events"] });
           toast({ title: "Biglietto acquistato!", description: eventTitle });
           setBuyingId(null);
         },
@@ -96,7 +107,6 @@ export default function ShopPage() {
       <h1 className="text-2xl font-bold mb-1">Shop</h1>
       <p className="text-sm text-muted-foreground mb-5">Biglietti e merchandise degli artisti che segui</p>
 
-      {/* Tabs */}
       <div className="flex gap-2 mb-6">
         {[
           { key: "biglietti", label: "🎫 Concerti" },
@@ -214,7 +224,7 @@ export default function ShopPage() {
                   </div>
                   {!ticket.forSale ? (
                     <button onClick={() => setResaleTicket(ticket)}
-                      className="text-xs text-muted-foreground hover:text-amber-400 transition-colors">
+                      className="text-xs px-3 py-1 rounded-full bg-amber-500/15 text-amber-400 hover:bg-amber-500/25 transition-colors font-medium">
                       Vendi
                     </button>
                   ) : (

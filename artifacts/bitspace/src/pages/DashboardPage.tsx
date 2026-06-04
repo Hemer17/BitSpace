@@ -48,10 +48,10 @@ export default function DashboardPage() {
   const [section, setSection] = useState<Section>("overview");
   const [users, setUsers] = useState<any[]>([]);
 
-  // Load users for ban/gift
+  // Load followers for the follower-block section
   useEffect(() => {
-    if (section === "ban" || section === "gift") {
-      fetch(`${BASE_URL}/api/admin/users`).then((r) => r.json()).then((d) => Array.isArray(d) && setUsers(d));
+    if (section === "ban") {
+      fetch(`${BASE_URL}/api/artists/me/followers`).then((r) => r.json()).then((d) => Array.isArray(d) && setUsers(d));
     }
   }, [section]);
 
@@ -128,10 +128,14 @@ export default function DashboardPage() {
     finally { setPostLoading(false); }
   };
 
-  const handleBan = async (userId: number, username: string) => {
-    await fetch(`${BASE_URL}/api/admin/users/${userId}/ban`, { method: "POST" });
-    toast({ title: `${username} bannato` });
-    setUsers((u) => u.filter((x) => x.id !== userId));
+  const handleBlockFollower = async (userId: number, username: string) => {
+    const r = await fetch(`${BASE_URL}/api/artists/me/block/${userId}`, { method: "POST" });
+    if (r.ok) {
+      toast({ title: `${username} rimosso dai follower`, description: "Non potrà più vedere i tuoi post." });
+      setUsers((u) => u.filter((x) => x.id !== userId));
+    } else {
+      toast({ title: "Errore durante il blocco", variant: "destructive" });
+    }
   };
 
   const handleGift = async () => {
@@ -174,7 +178,7 @@ export default function DashboardPage() {
     { key: "post", label: "Nuovo post", icon: Send },
     { key: "merch", label: "Merch", icon: ShoppingBag },
     { key: "gift", label: "Regala", icon: Gift },
-    { key: "ban", label: "Gestione utenti", icon: Ban },
+    { key: "ban", label: "Follower", icon: Users },
   ];
 
   return (
@@ -483,20 +487,33 @@ export default function DashboardPage() {
           </div>
         )}
 
-        {/* GESTIONE UTENTI (BAN) */}
+        {/* FOLLOWER */}
         {section === "ban" && (
           <div className="space-y-3">
-            <p className="text-sm text-muted-foreground mb-2">Rimuovi o banna utenti dalla piattaforma.</p>
-            {users.length === 0 && <p className="text-sm text-muted-foreground py-4 text-center">Caricamento utenti...</p>}
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-4 py-3">
+              <p className="text-xs text-amber-400 font-medium">Gestisci i tuoi follower</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Rimuovendo un follower, non potrà più vedere i tuoi post su BitSpace.</p>
+            </div>
+            {users.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground">
+                <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />
+                <p className="text-sm">Nessun follower ancora</p>
+              </div>
+            )}
             {users.map((u: any) => (
               <div key={u.id} className="bg-card border border-border rounded-xl px-4 py-3 flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium">{u.username}</p>
-                  <p className="text-xs text-muted-foreground">{u.email} · {u.role}</p>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-xs font-bold text-primary shrink-0">
+                    {u.username.slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">{u.username}</p>
+                    <p className="text-xs text-muted-foreground">{u.email}</p>
+                  </div>
                 </div>
-                <button onClick={() => handleBan(u.id, u.username)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-destructive/15 text-destructive hover:bg-destructive/30 transition-colors">
-                  <Ban className="w-3 h-3" />Banna
+                <button onClick={() => handleBlockFollower(u.id, u.username)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-secondary text-muted-foreground hover:bg-destructive/15 hover:text-destructive transition-colors">
+                  <X className="w-3 h-3" />Rimuovi
                 </button>
               </div>
             ))}
