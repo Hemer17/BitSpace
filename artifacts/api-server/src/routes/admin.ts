@@ -9,6 +9,21 @@ function getUser(req: any) {
   return (req.session as any)?.user as { id: number; username: string; role: string } | undefined;
 }
 
+async function geocodeCity(city: string): Promise<{ lat: number; lng: number } | null> {
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=1`;
+    const res = await fetch(url, {
+      headers: { "User-Agent": "BitSpace/1.0 (music platform)" },
+    });
+    if (!res.ok) return null;
+    const data = await res.json() as any[];
+    if (!data || data.length === 0) return null;
+    return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+  } catch {
+    return null;
+  }
+}
+
 // List all users (for artist admin panel)
 router.get("/admin/users", async (req, res) => {
   try {
@@ -40,7 +55,7 @@ router.post("/admin/users/:id/ban", async (req, res) => {
   }
 });
 
-// Create tour stop (artist only) — always also creates an event so it appears in the Shop
+// Create tour stop (artist only) — always creates an event so it appears in the Shop & Map
 router.post("/admin/tour-stops", async (req, res) => {
   try {
     const user = getUser(req);
@@ -56,7 +71,7 @@ router.post("/admin/tour-stops", async (req, res) => {
 
     if (!city || !venue || !date) return res.status(400).json({ error: "city, venue, date obbligatori" });
 
-    // Create a tour stop
+    // Create the tour stop record
     const [stop] = await db
       .insert(tourStopsTable)
       .values({
@@ -69,7 +84,25 @@ router.post("/admin/tour-stops", async (req, res) => {
       })
       .returning();
 
-    // Always create an event so the tour date appears in the Shop
+    // Resolve coordinates: use provided values or geocode the city automatically
+    let resolvedLat = lat;
+    let resolvedLng = lng;
+    if (!resolvedLat || !resolvedLng) {
+      const geo = await geocodeCity(`${venue}, ${city}`);
+      if (geo) {
+        resolvedLat = geo.lat;
+        resolvedLng = geo.lng;
+      } else {
+        // fallback: try just the city
+        const geo2 = await geocodeCity(city);
+        if (geo2) {
+          resolvedLat = geo2.lat;
+          resolvedLng = geo2.lng;
+        }
+      }
+    }
+
+    // Always create an event so the date appears in the Shop and on the Map
     await db.insert(eventsTable).values({
       title: `${artist.name} - ${city}`,
       artistName: artist.name,
@@ -77,8 +110,8 @@ router.post("/admin/tour-stops", async (req, res) => {
       city,
       venue,
       date,
-      lat: lat ?? 0,
-      lng: lng ?? 0,
+      lat: resolvedLat ?? 41.9028,
+      lng: resolvedLng ?? 12.4964,
       price: price ?? 25,
       ticketsLeft: 100,
       imageUrl: imageUrl ?? "https://images.unsplash.com/photo-1501386761578-eac5c94b800a?w=800&q=80",
@@ -107,7 +140,6 @@ router.post("/admin/gift-merch", async (req, res) => {
     const [item] = await db.select().from(merchTable).where(eq(merchTable.id, merchId));
     if (!item) return res.status(404).json({ error: "Articolo non trovato" });
 
-    // Decrement stock
     if (item.stock > 0) {
       await db.update(merchTable).set({ stock: item.stock - 1 }).where(eq(merchTable.id, merchId));
     }
