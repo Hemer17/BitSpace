@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { ArrowLeft, User, Mail, Lock, Music, Check } from "lucide-react";
+import { ArrowLeft, User, Lock, Music, Check, LogOut } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
@@ -14,7 +14,7 @@ const GENRES = [
 ];
 
 export default function ProfilePage() {
-  const { user, updateUser } = useAuth();
+  const { user, updateUser, logout } = useAuth();
   const [, setLocation] = useLocation();
   const { toast } = useToast();
 
@@ -181,6 +181,17 @@ export default function ProfilePage() {
               : "bg-primary text-white hover:bg-primary/90 disabled:opacity-50"
           )}>
           {loading ? "Salvataggio..." : saved ? <span className="flex items-center justify-center gap-2"><Check className="w-4 h-4" />Salvato!</span> : "Salva modifiche"}
+        </button>
+
+        {/* Logout — always visible, prominently placed for mobile */}
+        <button
+          onClick={async () => {
+            await logout();
+            setLocation("/");
+          }}
+          className="w-full py-3 rounded-xl font-semibold text-sm border border-destructive/40 text-destructive hover:bg-destructive/10 transition-colors flex items-center justify-center gap-2">
+          <LogOut className="w-4 h-4" />
+          Esci dall'account
         </button>
       </div>
     </div>
