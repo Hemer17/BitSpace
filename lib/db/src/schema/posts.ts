@@ -19,6 +19,8 @@ export const postsTable = pgTable("posts", {
   username: text("username"),
   isShared: boolean("is_shared").notNull().default(false),
   sharedFromId: integer("shared_from_id"),
+  songUrl: text("song_url"),
+  songTitle: text("song_title"),
 });
 
 export const commentsTable = pgTable("comments", {

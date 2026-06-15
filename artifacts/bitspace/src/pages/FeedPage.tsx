@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Heart, MessageCircle, Repeat2, Send, Plus, X, Radio } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Heart, MessageCircle, Repeat2, Send, Plus, X, Radio, Music, ExternalLink, Play } from "lucide-react";
 import { useGetFeed, useLikePost, useGetFeedSummary } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
@@ -101,6 +101,25 @@ function PostCard({ post, onRefresh }: { post: any; onRefresh: () => void }) {
             <span className="text-xs text-muted-foreground ml-auto">{post.timeAgo}</span>
           </div>
           <p className="text-sm text-foreground/90 leading-relaxed">{post.content}</p>
+          {post.songUrl && (
+            <a
+              href={post.songUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 mt-2.5 bg-primary/10 border border-primary/20 rounded-xl px-3 py-2.5 hover:bg-primary/20 transition-colors group"
+            >
+              <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
+                <Music className="w-4 h-4 text-primary" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-primary truncate">{post.songTitle ?? "Ascolta il brano"}</p>
+                <p className="text-xs text-muted-foreground">Clicca per ascoltare</p>
+              </div>
+              {post.songUrl.includes("spotify") || post.songUrl.includes("soundcloud") || post.songUrl.includes("youtube")
+                ? <ExternalLink className="w-4 h-4 text-primary/60 group-hover:text-primary shrink-0" />
+                : <Play className="w-4 h-4 text-primary/60 group-hover:text-primary shrink-0" />}
+            </a>
+          )}
           <div className="flex items-center gap-5 mt-3">
             <button onClick={handleLike}
               className={cn("flex items-center gap-1.5 text-xs transition-colors", liked ? "text-rose-500" : "text-muted-foreground hover:text-rose-400")}>
@@ -147,16 +166,31 @@ function CreatePostModal({ onClose, onCreated }: { onClose: () => void; onCreate
   const [content, setContent] = useState("");
   const [type, setType] = useState("story");
   const [loading, setLoading] = useState(false);
+  const [mySongs, setMySongs] = useState<any[]>([]);
+  const [selectedSongId, setSelectedSongId] = useState<string>("");
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (isArtist) {
+      fetch(`${BASE_URL}/api/songs/me`).then((r) => r.ok ? r.json() : []).then((d) => Array.isArray(d) && setMySongs(d));
+    }
+  }, [isArtist]);
+
+  const selectedSong = mySongs.find((s) => String(s.id) === selectedSongId);
 
   const handleSubmit = async () => {
     if (!content.trim()) return;
     setLoading(true);
     try {
+      const body: any = { content, type: isArtist ? type : "story" };
+      if (isArtist && type === "release" && selectedSong) {
+        body.songUrl = selectedSong.externalUrl || selectedSong.fileUrl || null;
+        body.songTitle = selectedSong.title;
+      }
       const r = await fetch(`${BASE_URL}/api/posts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, type: isArtist ? type : "story" }),
+        body: JSON.stringify(body),
       });
       if (!r.ok) {
         const err = await r.json();
@@ -199,6 +233,24 @@ function CreatePostModal({ onClose, onCreated }: { onClose: () => void; onCreate
               Racconto
             </span>
             <p className="text-xs text-muted-foreground mt-2">I fan possono pubblicare solo racconti.</p>
+          </div>
+        )}
+
+        {isArtist && type === "release" && (
+          <div className="mb-3">
+            <label className="text-xs text-muted-foreground mb-1 block">Canzone collegata (opzionale)</label>
+            <select
+              value={selectedSongId}
+              onChange={(e) => setSelectedSongId(e.target.value)}
+              className="w-full bg-secondary border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary">
+              <option value="">— Nessuna canzone selezionata —</option>
+              {mySongs.map((s) => (
+                <option key={s.id} value={String(s.id)}>{s.title}{s.genre ? ` (${s.genre})` : ""}</option>
+              ))}
+            </select>
+            {mySongs.length === 0 && (
+              <p className="text-xs text-muted-foreground mt-1">Nessuna canzone caricata. Aggiungine una dal dashboard.</p>
+            )}
           </div>
         )}
 

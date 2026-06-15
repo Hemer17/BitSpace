@@ -106,6 +106,8 @@ router.post("/posts", async (req, res) => {
       }
     }
 
+    const { songUrl, songTitle } = req.body as { songUrl?: string; songTitle?: string };
+
     const [post] = await db
       .insert(postsTable)
       .values({
@@ -123,6 +125,8 @@ router.post("/posts", async (req, res) => {
         userId: user.id,
         username: user.username,
         isShared: false,
+        songUrl: songUrl ?? null,
+        songTitle: songTitle ?? null,
       })
       .returning();
 

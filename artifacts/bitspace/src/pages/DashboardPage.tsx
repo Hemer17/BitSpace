@@ -54,6 +54,9 @@ export default function DashboardPage() {
     if (section === "ban") {
       fetch(`${BASE_URL}/api/artists/me/followers`).then((r) => r.json()).then((d) => Array.isArray(d) && setUsers(d));
     }
+    if (section === "post") {
+      fetch(`${BASE_URL}/api/songs/me`).then((r) => r.ok ? r.json() : []).then((d) => Array.isArray(d) && setPostMySongs(d));
+    }
   }, [section]);
 
   // --- Song upload state ---
@@ -69,6 +72,8 @@ export default function DashboardPage() {
   // --- New post state ---
   const [postForm, setPostForm] = useState({ content: "", type: "announcement" });
   const [postLoading, setPostLoading] = useState(false);
+  const [postSelectedSongId, setPostSelectedSongId] = useState("");
+  const [postMySongs, setPostMySongs] = useState<any[]>([]);
 
   // --- Merch form state ---
   const [showMerchForm, setShowMerchForm] = useState(false);
@@ -135,13 +140,22 @@ export default function DashboardPage() {
     if (!postForm.content.trim()) return;
     setPostLoading(true);
     try {
+      const body: any = { ...postForm };
+      if (postForm.type === "release" && postSelectedSongId) {
+        const song = postMySongs.find((s) => String(s.id) === postSelectedSongId);
+        if (song) {
+          body.songUrl = song.externalUrl || song.fileUrl || null;
+          body.songTitle = song.title;
+        }
+      }
       const r = await fetch(`${BASE_URL}/api/posts`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(postForm),
+        body: JSON.stringify(body),
       });
       if (!r.ok) throw new Error((await r.json()).error);
       toast({ title: "Post pubblicato!" });
       setPostForm({ content: "", type: "announcement" });
+      setPostSelectedSongId("");
       refetchStats();
     } catch (e: any) { toast({ title: "Errore", description: e.message, variant: "destructive" }); }
     finally { setPostLoading(false); }
@@ -484,6 +498,23 @@ export default function DashboardPage() {
                 ))}
               </div>
             </div>
+            {postForm.type === "release" && (
+              <div>
+                <label className="text-xs text-muted-foreground mb-1 block">Canzone collegata (opzionale)</label>
+                <select
+                  value={postSelectedSongId}
+                  onChange={(e) => setPostSelectedSongId(e.target.value)}
+                  className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary">
+                  <option value="">— Nessuna canzone selezionata —</option>
+                  {postMySongs.map((s: any) => (
+                    <option key={s.id} value={String(s.id)}>{s.title}{s.genre ? ` (${s.genre})` : ""}</option>
+                  ))}
+                </select>
+                {postMySongs.length === 0 && (
+                  <p className="text-xs text-muted-foreground mt-1">Nessuna canzone caricata. Aggiungine una dalla sezione Canzoni.</p>
+                )}
+              </div>
+            )}
             <div>
               <label className="text-xs text-muted-foreground mb-1 block">Contenuto *</label>
               <textarea value={postForm.content} onChange={(e) => setPostForm((f) => ({ ...f, content: e.target.value }))}

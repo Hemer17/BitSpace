@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { songsTable, artistsTable } from "@workspace/db";
+import { songsTable, artistsTable, postsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
 const router = Router();
@@ -8,6 +8,21 @@ const router = Router();
 function getUser(req: any) {
   return (req.session as any)?.user as { id: number; username: string; role: string } | undefined;
 }
+
+// Get current artist's own songs
+router.get("/songs/me", async (req, res) => {
+  try {
+    const user = getUser(req);
+    if (!user || user.role !== "artist") return res.status(403).json({ error: "Solo gli artisti" });
+    const [artist] = await db.select().from(artistsTable).where(eq(artistsTable.userId, user.id));
+    if (!artist) return res.status(404).json({ error: "Artista non trovato" });
+    const songs = await db.select().from(songsTable).where(eq(songsTable.artistId, artist.id));
+    res.json(songs);
+  } catch (err) {
+    req.log.error({ err }, "Failed to list my songs");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
 
 router.get("/songs/:artistId", async (req, res) => {
   try {
@@ -49,6 +64,27 @@ router.post("/songs", async (req, res) => {
 
     // Increment plays (simulate upload = track available)
     await db.update(artistsTable).set({ plays: (artist.plays ?? 0) + 1000 }).where(eq(artistsTable.id, artist.id));
+
+    // Auto-create a "release" post for this song
+    const songLink = externalUrl ?? fileUrl ?? null;
+    await db.insert(postsTable).values({
+      artistId: artist.id,
+      artistName: artist.name,
+      artistGenre: artist.genre,
+      artistAvatarUrl: artist.avatarUrl ?? null,
+      artistAvatarInitials: artist.avatarInitials,
+      type: "release",
+      content: `Nuova uscita: ${song.title}${genre ? ` — ${genre}` : ""}`,
+      likes: 0,
+      reposts: 0,
+      comments: 0,
+      timeAgo: "adesso",
+      userId: user.id,
+      username: user.username,
+      isShared: false,
+      songUrl: songLink,
+      songTitle: song.title,
+    });
 
     res.status(201).json(song);
   } catch (err) {
