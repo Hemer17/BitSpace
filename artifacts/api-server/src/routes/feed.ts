@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
 import { postsTable, commentsTable, followsTable, artistsTable, usersTable, artistBlocksTable } from "@workspace/db";
-import { eq, inArray } from "drizzle-orm";
+import { eq, inArray, and } from "drizzle-orm";
 
 const router = Router();
 
@@ -133,7 +133,7 @@ router.post("/posts", async (req, res) => {
   }
 });
 
-// Share / repost
+// Share / repost (toggle: repost if not yet done, undo if already done)
 router.post("/posts/:id/share", async (req, res) => {
   try {
     const user = getUser(req);
@@ -143,7 +143,23 @@ router.post("/posts/:id/share", async (req, res) => {
     const [original] = await db.select().from(postsTable).where(eq(postsTable.id, id));
     if (!original) return res.status(404).json({ error: "Not found" });
 
-    await db.update(postsTable).set({ reposts: original.reposts + 1 }).where(eq(postsTable.id, id));
+    // Check if user already reposted this post
+    const [existing] = await db
+      .select()
+      .from(postsTable)
+      .where(and(eq(postsTable.sharedFromId, id), eq(postsTable.userId, user.id), eq(postsTable.isShared, true)));
+
+    if (existing) {
+      // Undo repost: delete the shared post and decrement counter
+      await db.delete(postsTable).where(eq(postsTable.id, existing.id));
+      const newCount = Math.max(0, original.reposts - 1);
+      await db.update(postsTable).set({ reposts: newCount }).where(eq(postsTable.id, id));
+      return res.json({ reposted: false, reposts: newCount });
+    }
+
+    // New repost
+    const newCount = original.reposts + 1;
+    await db.update(postsTable).set({ reposts: newCount }).where(eq(postsTable.id, id));
 
     const [shared] = await db
       .insert(postsTable)
@@ -166,7 +182,7 @@ router.post("/posts/:id/share", async (req, res) => {
       })
       .returning();
 
-    res.status(201).json({ ...shared, liked: false });
+    res.status(201).json({ reposted: true, reposts: newCount, post: { ...shared, liked: false } });
   } catch (err) {
     req.log.error({ err }, "Failed to share post");
     res.status(500).json({ error: "Internal server error" });

@@ -19,6 +19,8 @@ const typeColor: Record<string, string> = {
 function PostCard({ post, onRefresh }: { post: any; onRefresh: () => void }) {
   const [liked, setLiked] = useState(false);
   const [likes, setLikes] = useState(post.likes ?? 0);
+  const [reposted, setReposted] = useState(false);
+  const [repostCount, setRepostCount] = useState(post.reposts ?? 0);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [localComments, setLocalComments] = useState<{ author: string; content: string }[]>([]);
@@ -57,8 +59,21 @@ function PostCard({ post, onRefresh }: { post: any; onRefresh: () => void }) {
 
   const handleShare = async () => {
     const r = await fetch(`${BASE_URL}/api/posts/${post.id}/share`, { method: "POST" });
-    if (r.ok) { toast({ title: "Post condiviso!" }); onRefresh(); }
-    else toast({ title: "Errore nella condivisione", variant: "destructive" });
+    if (r.ok) {
+      const data = await r.json();
+      if (data.reposted) {
+        setReposted(true);
+        setRepostCount(data.reposts);
+        toast({ title: "Post condiviso!" });
+      } else {
+        setReposted(false);
+        setRepostCount(data.reposts);
+        toast({ title: "Repost annullato" });
+      }
+      onRefresh();
+    } else {
+      toast({ title: "Errore nella condivisione", variant: "destructive" });
+    }
   };
 
   return (
@@ -96,8 +111,8 @@ function PostCard({ post, onRefresh }: { post: any; onRefresh: () => void }) {
               <MessageCircle className="w-3.5 h-3.5" />{post.comments ?? 0}
             </button>
             <button onClick={handleShare}
-              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-emerald-400 transition-colors">
-              <Repeat2 className="w-3.5 h-3.5" />{post.reposts ?? 0}
+              className={cn("flex items-center gap-1.5 text-xs transition-colors", reposted ? "text-emerald-400" : "text-muted-foreground hover:text-emerald-400")}>
+              <Repeat2 className={cn("w-3.5 h-3.5", reposted && "fill-current")} />{repostCount}
             </button>
           </div>
         </div>
