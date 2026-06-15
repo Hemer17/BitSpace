@@ -52,24 +52,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       body: JSON.stringify({ email, password }),
     });
 
-    const text = await r.text();
-
-    console.log("status:", r.status);
-    console.log("body:", text);
-
-    const clone = r.clone();
-
-    console.log("status:", r.status);
-    console.log("body:", await clone.text());
-
     const data = await r.json();
 
     if (!r.ok) {
-      throw new Error(text || "Login failed");
+      throw new Error(data?.error || "Login fallito");
     }
 
-    const u = JSON.parse(text);
-    setUser(u);
+    setUser(data);
   };
 
   const register = async (data: {
