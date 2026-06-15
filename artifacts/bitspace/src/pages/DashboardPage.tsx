@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import {
   Users, Play, Calendar, ShoppingBag, TrendingUp, Plus, Trash2, MapPin,
-  BarChart2, Music, Gift, Ban, Send, X, ChevronDown, ChevronUp, FileMusic
+  BarChart2, Music, Gift, Ban, Send, X, ChevronDown, ChevronUp, FileMusic,
+  Link, ExternalLink, Upload
 } from "lucide-react";
 import {
   useGetArtistDashboard, useListMerch, useCreateMerchItem, useDeleteMerchItem,
@@ -56,7 +57,9 @@ export default function DashboardPage() {
   }, [section]);
 
   // --- Song upload state ---
-  const [songForm, setSongForm] = useState({ title: "", duration: "", genre: "" });
+  const [songForm, setSongForm] = useState({ title: "", duration: "", genre: "", externalUrl: "" });
+  const [songFile, setSongFile] = useState<File | null>(null);
+  const [songMode, setSongMode] = useState<"file" | "link">("link");
   const [songLoading, setSongLoading] = useState(false);
 
   // --- Tour date state ---
@@ -79,13 +82,28 @@ export default function DashboardPage() {
     if (!songForm.title.trim()) return;
     setSongLoading(true);
     try {
+      let fileUrl: string | undefined;
+      if (songMode === "file" && songFile) {
+        const fd = new FormData();
+        fd.append("file", songFile);
+        const up = await fetch(`${BASE_URL}/api/songs/upload`, { method: "POST", body: fd });
+        if (up.ok) {
+          const data = await up.json();
+          fileUrl = data.url;
+        }
+      }
       const r = await fetch(`${BASE_URL}/api/songs`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(songForm),
+        body: JSON.stringify({
+          ...songForm,
+          fileUrl,
+          externalUrl: songMode === "link" && songForm.externalUrl.trim() ? songForm.externalUrl.trim() : undefined,
+        }),
       });
       if (!r.ok) throw new Error((await r.json()).error);
-      toast({ title: "Canzone caricata!" });
-      setSongForm({ title: "", duration: "", genre: "" });
+      toast({ title: "Canzone aggiunta!" });
+      setSongForm({ title: "", duration: "", genre: "", externalUrl: "" });
+      setSongFile(null);
       refetchStats();
     } catch (e: any) { toast({ title: "Errore", description: e.message, variant: "destructive" }); }
     finally { setSongLoading(false); }
@@ -273,7 +291,25 @@ export default function DashboardPage() {
         {section === "songs" && (
           <div className="space-y-5">
             <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
-              <h3 className="text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" />Carica nuova canzone</h3>
+              <h3 className="text-sm font-semibold flex items-center gap-2"><Plus className="w-4 h-4" />Aggiungi canzone</h3>
+
+              {/* Mode toggle */}
+              <div>
+                <label className="text-xs text-muted-foreground mb-1.5 block">Tipo di caricamento</label>
+                <div className="flex gap-2">
+                  <button onClick={() => setSongMode("link")}
+                    className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
+                      songMode === "link" ? "bg-primary text-white" : "bg-secondary text-muted-foreground hover:text-foreground")}>
+                    <Link className="w-3 h-3" />Link esterno
+                  </button>
+                  <button onClick={() => setSongMode("file")}
+                    className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
+                      songMode === "file" ? "bg-primary text-white" : "bg-secondary text-muted-foreground hover:text-foreground")}>
+                    <Upload className="w-3 h-3" />Carica file
+                  </button>
+                </div>
+              </div>
+
               {[
                 { key: "title", label: "Titolo *", placeholder: "Es. Notte d'estate" },
                 { key: "duration", label: "Durata", placeholder: "Es. 3:45" },
@@ -286,9 +322,50 @@ export default function DashboardPage() {
                     className="w-full bg-background border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary" />
                 </div>
               ))}
+
+              {songMode === "link" && (
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">Link esterno (Spotify, YouTube, SoundCloud…)</label>
+                  <div className="relative">
+                    <ExternalLink className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                    <input
+                      value={songForm.externalUrl}
+                      onChange={(e) => setSongForm((f) => ({ ...f, externalUrl: e.target.value }))}
+                      placeholder="https://open.spotify.com/track/..."
+                      className="w-full bg-background border border-border rounded-xl pl-9 pr-3 py-2 text-sm outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {songMode === "file" && (
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1 block">File audio (MP3, WAV, FLAC)</label>
+                  <label className={cn(
+                    "flex flex-col items-center justify-center w-full h-24 border-2 border-dashed rounded-xl cursor-pointer transition-colors",
+                    songFile ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/40 hover:bg-primary/5"
+                  )}>
+                    <input type="file" accept="audio/*" className="hidden"
+                      onChange={(e) => setSongFile(e.target.files?.[0] ?? null)} />
+                    {songFile ? (
+                      <div className="text-center">
+                        <Music className="w-5 h-5 mx-auto mb-1 text-primary" />
+                        <p className="text-xs font-medium text-primary truncate max-w-[200px]">{songFile.name}</p>
+                        <p className="text-xs text-muted-foreground">{(songFile.size / 1024 / 1024).toFixed(1)} MB</p>
+                      </div>
+                    ) : (
+                      <div className="text-center">
+                        <Upload className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
+                        <p className="text-xs text-muted-foreground">Clicca per selezionare un file audio</p>
+                      </div>
+                    )}
+                  </label>
+                </div>
+              )}
+
               <button onClick={handleUploadSong} disabled={songLoading || !songForm.title.trim()}
                 className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors">
-                {songLoading ? "Caricamento..." : "Carica canzone"}
+                {songLoading ? "Salvataggio..." : "Aggiungi canzone"}
               </button>
             </div>
 
@@ -304,10 +381,23 @@ export default function DashboardPage() {
                     <p className="text-sm font-medium truncate">{song.title}</p>
                     <p className="text-xs text-muted-foreground">{song.genre} · {song.duration}</p>
                   </div>
-                  <button onClick={async () => { await fetch(`${BASE_URL}/api/songs/${song.id}`, { method: "DELETE" }); refetchStats(); }}
-                    className="text-muted-foreground hover:text-destructive transition-colors p-1.5">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center gap-1">
+                    {(song.externalUrl || song.fileUrl) && (
+                      <a
+                        href={song.externalUrl || song.fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:text-primary/70 transition-colors p-1.5"
+                        title={song.externalUrl ? "Apri link esterno" : "Riproduci file"}
+                      >
+                        {song.externalUrl ? <ExternalLink className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                      </a>
+                    )}
+                    <button onClick={async () => { await fetch(`${BASE_URL}/api/songs/${song.id}`, { method: "DELETE" }); refetchStats(); }}
+                      className="text-muted-foreground hover:text-destructive transition-colors p-1.5">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

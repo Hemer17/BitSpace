@@ -1,9 +1,13 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { merchTable } from "@workspace/db";
+import { merchTable, artistsTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
 const router = Router();
+
+function getUser(req: any) {
+  return (req.session as any)?.user as { id: number; username: string; role: string } | undefined;
+}
 
 router.get("/merch", async (req, res) => {
   try {
@@ -19,6 +23,12 @@ router.get("/merch", async (req, res) => {
 
 router.post("/merch", async (req, res) => {
   try {
+    const user = getUser(req);
+    if (!user || user.role !== "artist") return res.status(403).json({ error: "Solo gli artisti possono aggiungere merch" });
+
+    const [artist] = await db.select().from(artistsTable).where(eq(artistsTable.userId, user.id));
+    if (!artist) return res.status(404).json({ error: "Profilo artista non trovato" });
+
     const { name, category, price, stock, description, imageUrl, badge } = req.body;
     if (!name || !category || price === undefined || stock === undefined || !description) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -26,7 +36,7 @@ router.post("/merch", async (req, res) => {
     const [item] = await db
       .insert(merchTable)
       .values({
-        artistId: 1,
+        artistId: artist.id,
         name,
         category,
         price: parseFloat(price),

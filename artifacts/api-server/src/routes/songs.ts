@@ -28,8 +28,9 @@ router.post("/songs", async (req, res) => {
     const [artist] = await db.select().from(artistsTable).where(eq(artistsTable.userId, user.id));
     if (!artist) return res.status(404).json({ error: "Profilo artista non trovato" });
 
-    const { title, duration, genre, coverUrl } = req.body as {
+    const { title, duration, genre, coverUrl, fileUrl, externalUrl } = req.body as {
       title: string; duration?: string; genre?: string; coverUrl?: string;
+      fileUrl?: string; externalUrl?: string;
     };
     if (!title?.trim()) return res.status(400).json({ error: "Titolo obbligatorio" });
 
@@ -41,6 +42,8 @@ router.post("/songs", async (req, res) => {
         duration: duration ?? "0:00",
         genre: genre ?? artist.genre,
         coverUrl: coverUrl ?? null,
+        fileUrl: fileUrl ?? null,
+        externalUrl: externalUrl ?? null,
       })
       .returning();
 

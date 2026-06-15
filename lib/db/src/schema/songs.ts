@@ -7,6 +7,8 @@ export const songsTable = pgTable("songs", {
   duration: text("duration").notNull().default("0:00"),
   genre: text("genre").notNull().default(""),
   coverUrl: text("cover_url"),
+  fileUrl: text("file_url"),
+  externalUrl: text("external_url"),
   uploadedAt: timestamp("uploaded_at").defaultNow(),
 });
 
