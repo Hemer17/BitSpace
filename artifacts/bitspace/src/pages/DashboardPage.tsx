@@ -72,7 +72,8 @@ export default function DashboardPage() {
 
   // --- Merch form state ---
   const [showMerchForm, setShowMerchForm] = useState(false);
-  const [merchForm, setMerchForm] = useState({ name: "", category: "Magliette", price: "", stock: "", description: "" });
+  const [merchForm, setMerchForm] = useState({ name: "", category: "Magliette", price: "", stock: "", description: "", imageUrl: "" });
+  const [merchImagePreview, setMerchImagePreview] = useState<string | null>(null);
 
   // --- Gift state ---
   const [giftForm, setGiftForm] = useState({ recipientUsername: "", type: "ticket", eventId: "", merchId: "" });
@@ -179,14 +180,33 @@ export default function DashboardPage() {
     finally { setGiftLoading(false); }
   };
 
-  const handleCreateMerch = () => {
+  const handleCreateMerch = async () => {
     if (!merchForm.name || !merchForm.price || !merchForm.stock || !merchForm.description) {
       toast({ title: "Campi obbligatori mancanti", variant: "destructive" }); return;
     }
-    createMerch.mutate(
-      { data: { name: merchForm.name, category: merchForm.category, price: parseFloat(merchForm.price), stock: parseInt(merchForm.stock), description: merchForm.description } },
-      { onSuccess: () => { queryClient.invalidateQueries({ queryKey: ["/api/merch"] }); setShowMerchForm(false); setMerchForm({ name: "", category: "Magliette", price: "", stock: "", description: "" }); toast({ title: "Articolo aggiunto!" }); } }
-    );
+    try {
+      const r = await fetch(`${BASE_URL}/api/merch`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: merchForm.name,
+          category: merchForm.category,
+          price: parseFloat(merchForm.price),
+          stock: parseInt(merchForm.stock),
+          description: merchForm.description,
+          imageUrl: merchImagePreview || merchForm.imageUrl || undefined,
+        }),
+      });
+      if (!r.ok) throw new Error((await r.json()).error);
+      queryClient.invalidateQueries({ queryKey: ["/api/merch"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/shop"] });
+      setShowMerchForm(false);
+      setMerchForm({ name: "", category: "Magliette", price: "", stock: "", description: "", imageUrl: "" });
+      setMerchImagePreview(null);
+      toast({ title: "Articolo aggiunto! Ora visibile nello shop." });
+    } catch (e: any) {
+      toast({ title: "Errore", description: e.message, variant: "destructive" });
+    }
   };
 
   const navItems: { key: Section; label: string; icon: React.ElementType }[] = [
@@ -486,11 +506,61 @@ export default function DashboardPage() {
             </button>
             {showMerchForm && (
               <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
+                {/* Image picker */}
+                <div>
+                  <label className="text-xs text-muted-foreground mb-1.5 block">Immagine prodotto</label>
+                  <label className={cn(
+                    "flex items-center justify-center w-full rounded-xl border-2 border-dashed cursor-pointer transition-colors overflow-hidden",
+                    merchImagePreview ? "border-primary/40 h-36" : "border-border hover:border-primary/40 h-24 hover:bg-primary/5"
+                  )}>
+                    <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        const img = new Image();
+                        img.onload = () => {
+                          const canvas = document.createElement("canvas");
+                          const MAX = 600;
+                          const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+                          canvas.width = img.width * scale;
+                          canvas.height = img.height * scale;
+                          canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+                          setMerchImagePreview(canvas.toDataURL("image/jpeg", 0.8));
+                        };
+                        img.src = ev.target?.result as string;
+                      };
+                      reader.readAsDataURL(file);
+                    }} />
+                    {merchImagePreview ? (
+                      <img src={merchImagePreview} alt="preview" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="text-center">
+                        <Upload className="w-5 h-5 mx-auto mb-1 text-muted-foreground" />
+                        <p className="text-xs text-muted-foreground">Clicca per caricare un'immagine</p>
+                      </div>
+                    )}
+                  </label>
+                  {merchImagePreview && (
+                    <button onClick={() => setMerchImagePreview(null)}
+                      className="mt-1 text-xs text-muted-foreground hover:text-destructive transition-colors flex items-center gap-1">
+                      <X className="w-3 h-3" />Rimuovi immagine
+                    </button>
+                  )}
+                  {!merchImagePreview && (
+                    <div className="mt-1.5">
+                      <input value={merchForm.imageUrl} onChange={(e) => setMerchForm((f) => ({ ...f, imageUrl: e.target.value }))}
+                        placeholder="Oppure incolla un URL immagine..."
+                        className="w-full bg-background border border-border rounded-xl px-3 py-2 text-xs outline-none focus:border-primary" />
+                    </div>
+                  )}
+                </div>
+
                 {[
-                  { key: "name", label: "Nome", placeholder: "Es. T-shirt Tour 2026" },
-                  { key: "price", label: "Prezzo (€)", placeholder: "Es. 24" },
-                  { key: "stock", label: "Stock", placeholder: "Es. 50" },
-                  { key: "description", label: "Descrizione", placeholder: "Descrizione breve..." },
+                  { key: "name", label: "Nome *", placeholder: "Es. T-shirt Tour 2026" },
+                  { key: "price", label: "Prezzo (€) *", placeholder: "Es. 24" },
+                  { key: "stock", label: "Stock *", placeholder: "Es. 50" },
+                  { key: "description", label: "Descrizione *", placeholder: "Descrizione breve..." },
                 ].map(({ key, label, placeholder }) => (
                   <div key={key}>
                     <label className="text-xs text-muted-foreground mb-1 block">{label}</label>
@@ -507,11 +577,12 @@ export default function DashboardPage() {
                   </select>
                 </div>
                 <div className="flex gap-2">
-                  <button onClick={handleCreateMerch} disabled={createMerch.isPending}
+                  <button onClick={handleCreateMerch}
                     className="flex-1 bg-primary text-white rounded-xl py-2 text-sm font-semibold hover:bg-primary/90 disabled:opacity-60 transition-colors">
-                    {createMerch.isPending ? "..." : "Aggiungi"}
+                    Aggiungi
                   </button>
-                  <button onClick={() => setShowMerchForm(false)} className="px-4 bg-secondary text-muted-foreground rounded-xl py-2 text-sm">Annulla</button>
+                  <button onClick={() => { setShowMerchForm(false); setMerchImagePreview(null); }}
+                    className="px-4 bg-secondary text-muted-foreground rounded-xl py-2 text-sm">Annulla</button>
                 </div>
               </div>
             )}
