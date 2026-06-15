@@ -92,27 +92,37 @@ router.post("/auth/login", async (req, res) => {
       password: string;
     };
 
-    // allow even empty input (optional, but you asked "any input works")
-    const safeEmail = email || "guest@example.com";
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email e password sono obbligatori" });
+    }
 
-    const fakeUser = {
-      id: Math.floor(Math.random() * 100000), // optional: unique per login
-      username: safeEmail.split("@")[0] || "user",
-      email: safeEmail,
-      role: "fan",
+    const [user] = await db
+      .select()
+      .from(usersTable)
+      .where(eq(usersTable.email, email));
+
+    if (!user) {
+      return res.status(401).json({ error: "Credenziali non valide" });
+    }
+
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    if (!valid) {
+      return res.status(401).json({ error: "Credenziali non valide" });
+    }
+
+    const sessionUser = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role: user.role,
     };
 
-    (req.session as any).user = fakeUser;
+    (req.session as any).user = sessionUser;
 
-    return res.json(fakeUser);
+    return res.json(sessionUser);
   } catch (err) {
-    console.error("Login failed:", err);
-    return res.json({
-      id: 1,
-      username: "fallback",
-      email: "fallback@example.com",
-      role: "fan",
-    });
+    req.log.error({ err }, "Login failed");
+    return res.status(500).json({ error: "Errore interno del server" });
   }
 });
 
