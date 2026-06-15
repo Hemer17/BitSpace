@@ -32,7 +32,7 @@ export default function LandingPage() {
       {/* Header */}
       <header className="w-full px-[8%] py-5 flex justify-between items-center fixed top-0 z-40 bg-[rgba(11,15,26,0.8)] backdrop-blur-[10px]">
         <div className="flex items-center">
-          <img src={`${BASE}/bitspacescritta.png`} alt="BitSpace" className="h-9 object-contain" />
+          <img src={`${BASE}/bitspacescritta.png`} alt="BitSpace" className="h-12 object-contain" />
         </div>
         <nav className="flex gap-4">
           <Link href="/login" className="px-[18px] py-[10px] rounded-xl border border-[#6d5dfc] font-medium hover:bg-[#6d5dfc] transition-colors text-sm">

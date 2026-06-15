@@ -21,6 +21,7 @@ export const postsTable = pgTable("posts", {
   sharedFromId: integer("shared_from_id"),
   songUrl: text("song_url"),
   songTitle: text("song_title"),
+  songId: integer("song_id"),
 });
 
 export const commentsTable = pgTable("comments", {

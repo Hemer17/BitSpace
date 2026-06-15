@@ -8,3 +8,4 @@ export * from "./users";
 export * from "./follows";
 export * from "./songs";
 export * from "./artist_blocks";
+export * from "./song_plays";

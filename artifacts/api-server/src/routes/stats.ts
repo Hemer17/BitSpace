@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { artistsTable, postsTable, tourStopsTable, merchTable, followsTable, songsTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { artistsTable, postsTable, tourStopsTable, merchTable, followsTable, songsTable, songPlaysTable } from "@workspace/db";
+import { eq, and, gte, lt } from "drizzle-orm";
 
 const router = Router();
 
@@ -18,31 +18,68 @@ router.get("/stats/dashboard", async (req, res) => {
       const [linked] = await db.select().from(artistsTable).where(eq(artistsTable.userId, user.id));
       artist = linked;
     }
-    // Fallback: first artist if no linked profile found
     if (!artist) {
       const [first] = await db.select().from(artistsTable).limit(1);
       artist = first;
     }
 
     const artistId = artist?.id ?? 1;
-    const stops = await db.select().from(tourStopsTable).where(eq(tourStopsTable.artistId, artistId));
-    const merch = await db.select().from(merchTable).where(eq(merchTable.artistId, artistId));
-    const posts = await db.select().from(postsTable).where(eq(postsTable.artistId, artistId));
-    const songs = await db.select().from(songsTable).where(eq(songsTable.artistId, artistId));
 
-    // Follower count from follows table
-    const allFollows = await db.select().from(followsTable).where(eq(followsTable.artistId, artistId));
+    const now = new Date();
+    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const sixtyDaysAgo = new Date(now.getTime() - 60 * 24 * 60 * 60 * 1000);
+
+    const [stops, merch, posts, songs, allFollows] = await Promise.all([
+      db.select().from(tourStopsTable).where(eq(tourStopsTable.artistId, artistId)),
+      db.select().from(merchTable).where(eq(merchTable.artistId, artistId)),
+      db.select().from(postsTable).where(eq(postsTable.artistId, artistId)),
+      db.select().from(songsTable).where(eq(songsTable.artistId, artistId)),
+      db.select().from(followsTable).where(eq(followsTable.artistId, artistId)),
+    ]);
+
+    // Real followers growth: last 30 days vs previous 30 days
+    const followsThisMonth = allFollows.filter(
+      (f) => f.createdAt && f.createdAt >= thirtyDaysAgo
+    ).length;
+    const followsPrevMonth = allFollows.filter(
+      (f) => f.createdAt && f.createdAt >= sixtyDaysAgo && f.createdAt < thirtyDaysAgo
+    ).length;
+    const followersGrowth = followsPrevMonth === 0
+      ? (followsThisMonth > 0 ? 100 : 0)
+      : Math.round(((followsThisMonth - followsPrevMonth) / followsPrevMonth) * 100 * 10) / 10;
+
+    // Real plays growth: last 30 days vs previous 30 days
+    const [playsThisMonth, playsPrevMonth] = await Promise.all([
+      db.select().from(songPlaysTable).where(
+        and(eq(songPlaysTable.artistId, artistId), gte(songPlaysTable.playedAt, thirtyDaysAgo))
+      ),
+      db.select().from(songPlaysTable).where(
+        and(
+          eq(songPlaysTable.artistId, artistId),
+          gte(songPlaysTable.playedAt, sixtyDaysAgo),
+          lt(songPlaysTable.playedAt, thirtyDaysAgo)
+        )
+      ),
+    ]);
+
+    const playsGrowth = playsPrevMonth.length === 0
+      ? (playsThisMonth.length > 0 ? 100 : 0)
+      : Math.round(((playsThisMonth.length - playsPrevMonth.length) / playsPrevMonth.length) * 100 * 10) / 10;
+
+    const totalPlays = playsThisMonth.length + playsPrevMonth.length || artist?.plays || 0;
 
     res.json({
       artistId,
       artistName: artist?.name ?? "",
       totalFollowers: allFollows.length || (artist?.followers ?? 0),
-      totalPlays: artist?.plays ?? 3240000,
+      totalPlays,
+      playsThisMonth: playsThisMonth.length,
+      newFollowersThisMonth: followsThisMonth,
       tourDates: stops.length,
       merch: merch.length,
       songs: songs.length,
-      followersGrowth: 4.2,
-      playsGrowth: 12.1,
+      followersGrowth,
+      playsGrowth,
       recentPosts: posts.slice(-3).reverse().map((p) => ({ ...p, liked: false })),
       upcomingEvents: stops,
       songsList: songs,

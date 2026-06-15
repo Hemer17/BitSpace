@@ -146,6 +146,7 @@ export default function DashboardPage() {
         if (song) {
           body.songUrl = song.externalUrl || song.fileUrl || null;
           body.songTitle = song.title;
+          body.songId = song.id;
         }
       }
       const r = await fetch(`${BASE_URL}/api/posts`, {

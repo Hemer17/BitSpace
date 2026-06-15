@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { db } from "@workspace/db";
-import { songsTable, artistsTable, postsTable } from "@workspace/db";
+import { songsTable, artistsTable, postsTable, songPlaysTable } from "@workspace/db";
 import { eq } from "drizzle-orm";
 
 const router = Router();
@@ -84,11 +84,26 @@ router.post("/songs", async (req, res) => {
       isShared: false,
       songUrl: songLink,
       songTitle: song.title,
+      songId: song.id,
     });
 
     res.status(201).json(song);
   } catch (err) {
     req.log.error({ err }, "Failed to upload song");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Track a song play/click
+router.post("/songs/:id/play", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    const [song] = await db.select().from(songsTable).where(eq(songsTable.id, id));
+    if (!song) return res.status(404).json({ error: "Not found" });
+    await db.insert(songPlaysTable).values({ songId: id, artistId: song.artistId });
+    res.json({ ok: true });
+  } catch (err) {
+    req.log.error({ err }, "Failed to track song play");
     res.status(500).json({ error: "Internal server error" });
   }
 });

@@ -106,6 +106,7 @@ function PostCard({ post, onRefresh }: { post: any; onRefresh: () => void }) {
               href={post.songUrl}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => post.songId && fetch(`${BASE_URL}/api/songs/${post.songId}/play`, { method: "POST" }).catch(() => {})}
               className="flex items-center gap-3 mt-2.5 bg-primary/10 border border-primary/20 rounded-xl px-3 py-2.5 hover:bg-primary/20 transition-colors group"
             >
               <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center shrink-0">
@@ -186,6 +187,7 @@ function CreatePostModal({ onClose, onCreated }: { onClose: () => void; onCreate
       if (isArtist && type === "release" && selectedSong) {
         body.songUrl = selectedSong.externalUrl || selectedSong.fileUrl || null;
         body.songTitle = selectedSong.title;
+        body.songId = selectedSong.id;
       }
       const r = await fetch(`${BASE_URL}/api/posts`, {
         method: "POST",
