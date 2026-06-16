@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
-import { Ticket, Calendar, MapPin, QrCode, ShoppingCart, ShoppingBag, Tag, AlertCircle } from "lucide-react";
+import { Ticket, Calendar, MapPin, QrCode, ShoppingCart, ShoppingBag, Tag, AlertCircle, ArrowLeft } from "lucide-react";
 import { useListTickets, usePurchaseTicket, useListEvents } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { useSearch, useLocation } from "wouter";
 
 const BASE_URL = import.meta.env.BASE_URL.replace(/\/$/, "");
 
@@ -54,19 +55,30 @@ function ResaleModal({ ticket, onClose, onDone }: { ticket: any; onClose: () => 
 
 export default function ShopPage() {
   const { user } = useAuth();
+  const search = useSearch();
+  const [, navigate] = useLocation();
+  const params = new URLSearchParams(search);
+  const filterArtistId = params.get("artistId") ? parseInt(params.get("artistId")!) : null;
+
   const { data: tickets, isLoading: ticketsLoading } = useListTickets();
   const { data: events } = useListEvents({});
   const purchaseMutation = usePurchaseTicket();
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [buyingId, setBuyingId] = useState<number | null>(null);
+  const [buyingMerchId, setBuyingMerchId] = useState<number | null>(null);
   const [resaleTicket, setResaleTicket] = useState<any>(null);
   const [shopData, setShopData] = useState<{ events: any[]; merch: any[] } | null>(null);
-  const [tab, setTab] = useState<"biglietti" | "merch" | "miei">("biglietti");
+  const [tab, setTab] = useState<"biglietti" | "merch" | "miei">(filterArtistId ? "merch" : "biglietti");
 
   useEffect(() => {
     fetch(`${BASE_URL}/api/shop`).then((r) => r.json()).then(setShopData).catch(() => { });
   }, []);
+
+  // When artistId filter is set from map, switch to merch tab automatically
+  useEffect(() => {
+    if (filterArtistId) setTab("merch");
+  }, [filterArtistId]);
 
   const handleBuy = (eventId: number, eventTitle: string) => {
     setBuyingId(eventId);
@@ -74,7 +86,6 @@ export default function ShopPage() {
       { data: { eventId } },
       {
         onSuccess: () => {
-          // Optimistic real-time update — decrement ticketsLeft immediately
           setShopData((prev) => prev ? {
             ...prev,
             events: prev.events.map((e) =>
@@ -99,13 +110,59 @@ export default function ShopPage() {
     );
   };
 
-  const displayEvents = shopData?.events ?? events ?? [];
-  const displayMerch = shopData?.merch ?? [];
+  const handleBuyMerch = async (item: any) => {
+    setBuyingMerchId(item.id);
+    try {
+      const r = await fetch(`${BASE_URL}/api/merch/${item.id}/buy`, { method: "POST" });
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.error ?? "Errore acquisto");
+      setShopData((prev) => prev ? {
+        ...prev,
+        merch: prev.merch.map((m) => m.id === item.id ? { ...m, stock: data.stock } : m),
+      } : prev);
+      toast({ title: "Acquisto completato! 🛍️", description: item.name });
+    } catch (e: any) {
+      toast({ title: e.message, variant: "destructive" });
+    } finally {
+      setBuyingMerchId(null);
+    }
+  };
+
+  const rawEvents = shopData?.events ?? events ?? [];
+  const rawMerch = shopData?.merch ?? [];
+
+  const displayEvents = filterArtistId
+    ? rawEvents.filter((e: any) => e.artistId === filterArtistId)
+    : rawEvents;
+  const displayMerch = filterArtistId
+    ? rawMerch.filter((m: any) => m.artistId === filterArtistId)
+    : rawMerch;
+
+  // Get artist name for filter header
+  const filteredArtistName = filterArtistId
+    ? (rawMerch.find((m: any) => m.artistId === filterArtistId)?.artistName
+      ?? rawEvents.find((e: any) => e.artistId === filterArtistId)?.artistName
+      ?? "Artista")
+    : null;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 pb-24 md:pb-6">
-      <h1 className="text-2xl font-bold mb-1">Shop</h1>
-      <p className="text-sm text-muted-foreground mb-5">Biglietti e merchandise degli artisti che segui</p>
+      {filterArtistId ? (
+        <div className="flex items-center gap-3 mb-5">
+          <button
+            onClick={() => navigate("/shop")}
+            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
+            <ArrowLeft className="w-4 h-4" />Tutto lo shop
+          </button>
+          <span className="text-muted-foreground/40">·</span>
+          <h1 className="text-xl font-bold truncate">🎨 {filteredArtistName}</h1>
+        </div>
+      ) : (
+        <>
+          <h1 className="text-2xl font-bold mb-1">Shop</h1>
+          <p className="text-sm text-muted-foreground mb-5">Biglietti e merchandise degli artisti che segui</p>
+        </>
+      )}
 
       <div className="flex gap-2 mb-6">
         {[
@@ -163,26 +220,52 @@ export default function ShopPage() {
 
       {/* MERCH */}
       {tab === "merch" && (
-        <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
           {displayMerch.length === 0 && (
-            <div className="text-center py-12">
+            <div className="col-span-2 text-center py-12">
               <ShoppingBag className="w-8 h-8 mx-auto mb-2 opacity-30" />
-              <p className="text-sm text-muted-foreground">Segui degli artisti per vedere il loro merch qui</p>
+              <p className="text-sm text-muted-foreground">
+                {filterArtistId ? "Nessun merch disponibile per questo artista" : "Segui degli artisti per vedere il loro merch qui"}
+              </p>
             </div>
           )}
           {displayMerch.map((item: any) => (
-            <div key={item.id} className="bg-card border border-border rounded-2xl p-4 flex items-center gap-4">
-              <div className="w-16 h-16 rounded-xl overflow-hidden shrink-0">
+            <div key={item.id} className="bg-card border border-border rounded-2xl overflow-hidden flex flex-col">
+              <div className="relative aspect-square overflow-hidden">
                 <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                {item.badge && (
+                  <span className="absolute top-2 left-2 text-xs bg-primary text-white px-2 py-0.5 rounded-full font-medium shadow">
+                    {item.badge}
+                  </span>
+                )}
+                {item.stock === 0 && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <span className="text-white text-sm font-semibold">Esaurito</span>
+                  </div>
+                )}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm truncate">{item.name}</p>
-                <p className="text-xs text-muted-foreground">{item.category}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">Stock: {item.stock}</p>
-              </div>
-              <div className="flex flex-col items-end gap-2 shrink-0">
-                <span className="text-sm font-bold text-primary">€{item.price.toFixed(2)}</span>
-                {item.badge && <span className="text-xs bg-primary/15 text-primary px-2 py-0.5 rounded-full">{item.badge}</span>}
+              <div className="p-3 flex flex-col gap-2 flex-1">
+                <div>
+                  <p className="font-semibold text-sm leading-tight">{item.name}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{item.category}</p>
+                  <p className="text-xs text-muted-foreground">Stock: {item.stock}</p>
+                </div>
+                <div className="flex items-center justify-between mt-auto">
+                  <span className="text-sm font-bold text-primary">€{item.price.toFixed(2)}</span>
+                  <button
+                    onClick={() => handleBuyMerch(item)}
+                    disabled={buyingMerchId === item.id || item.stock === 0}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors",
+                      item.stock === 0
+                        ? "bg-secondary text-muted-foreground cursor-not-allowed"
+                        : "bg-primary text-white hover:bg-primary/90 disabled:opacity-50"
+                    )}>
+                    {buyingMerchId === item.id ? "..." : item.stock === 0 ? "Esaurito" : (
+                      <><ShoppingCart className="w-3 h-3" />Compra</>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           ))}

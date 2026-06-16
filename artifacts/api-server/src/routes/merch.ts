@@ -53,6 +53,28 @@ router.post("/merch", async (req, res) => {
   }
 });
 
+router.post("/merch/:id/buy", async (req, res) => {
+  try {
+    const user = getUser(req);
+    if (!user) return res.status(401).json({ error: "Non autenticato" });
+
+    const id = parseInt(req.params.id);
+    const [item] = await db.select().from(merchTable).where(eq(merchTable.id, id));
+    if (!item) return res.status(404).json({ error: "Articolo non trovato" });
+    if (item.stock <= 0) return res.status(409).json({ error: "Esaurito" });
+
+    const [updated] = await db
+      .update(merchTable)
+      .set({ stock: item.stock - 1 })
+      .where(eq(merchTable.id, id))
+      .returning();
+    res.json(updated);
+  } catch (err) {
+    req.log.error({ err }, "Failed to buy merch item");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.delete("/merch/:id", async (req, res) => {
   try {
     const id = parseInt(req.params.id);

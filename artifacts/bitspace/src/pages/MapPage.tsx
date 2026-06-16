@@ -1,46 +1,64 @@
 import { useEffect, useState, useRef } from "react";
-import { MapPin, Navigation, Zap, Calendar, Euro } from "lucide-react";
+import { MapPin, Navigation, Zap, Calendar, ShoppingBag } from "lucide-react";
 import { useListNearbyEvents, useListEvents } from "@workspace/api-client-react";
 import { cn } from "@/lib/utils";
+import { useLocation } from "wouter";
 import "leaflet/dist/leaflet.css";
 
+const BASE_URL = import.meta.env.BASE_URL.replace(/\/$/, "");
+
 type EventItem = {
-  id: number; title: string; artistName: string; city: string; venue: string;
-  date: string; lat: number; lng: number; price: number; ticketsLeft: number;
-  imageUrl: string; genre: string; isTrending: boolean;
+  id: number; title: string; artistName: string; artistId: number | null;
+  city: string; venue: string; date: string; lat: number; lng: number;
+  price: number; ticketsLeft: number; imageUrl: string; genre: string; isTrending: boolean;
 };
 type NearbyItem = { event: EventItem; distanceKm: number };
 
-function EventCard({ event, distanceKm }: { event: EventItem; distanceKm?: number }) {
+function EventCard({ event, distanceKm, onShopClick }: {
+  event: EventItem; distanceKm?: number; onShopClick: (artistId: number) => void;
+}) {
   return (
-    <div className="bg-card border border-border rounded-2xl overflow-hidden flex items-center gap-3 p-3 hover:border-primary/40 transition-colors">
-      <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0">
-        <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
-      </div>
-      <div className="flex-1 min-w-0">
-        <p className="font-semibold text-sm truncate">{event.title}</p>
-        <p className="text-xs text-muted-foreground truncate">{event.artistName}</p>
-        <div className="flex items-center gap-2 mt-1 flex-wrap">
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <MapPin className="w-3 h-3" />{event.city}
-          </span>
-          <span className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Calendar className="w-3 h-3" />{event.date}
-          </span>
-          {distanceKm !== undefined && (
-            <span className="text-xs text-primary font-medium">{distanceKm} km</span>
-          )}
+    <div className="bg-card border border-border rounded-2xl overflow-hidden hover:border-primary/40 transition-colors">
+      <div className="flex items-center gap-3 p-3">
+        <div className="w-14 h-14 rounded-xl overflow-hidden shrink-0">
+          <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-semibold text-sm truncate">{event.title}</p>
+          <p className="text-xs text-muted-foreground truncate">{event.artistName}</p>
+          <div className="flex items-center gap-2 mt-1 flex-wrap">
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <MapPin className="w-3 h-3" />{event.city}
+            </span>
+            <span className="flex items-center gap-1 text-xs text-muted-foreground">
+              <Calendar className="w-3 h-3" />{event.date}
+            </span>
+            {distanceKm !== undefined && (
+              <span className="text-xs text-primary font-medium">{distanceKm} km</span>
+            )}
+          </div>
+        </div>
+        <div className="shrink-0 text-right flex flex-col items-end gap-1.5">
+          <p className="text-sm font-bold text-primary">€{event.price.toFixed(0)}</p>
+          <p className="text-xs text-muted-foreground">{event.ticketsLeft} rim.</p>
         </div>
       </div>
-      <div className="shrink-0 text-right">
-        <p className="text-sm font-bold text-primary">€{event.price.toFixed(0)}</p>
-        <p className="text-xs text-muted-foreground">{event.ticketsLeft} rimasti</p>
-      </div>
+      {event.artistId && (
+        <div className="px-3 pb-3">
+          <button
+            onClick={() => onShopClick(event.artistId!)}
+            className="w-full flex items-center justify-center gap-1.5 py-1.5 rounded-xl bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors">
+            <ShoppingBag className="w-3.5 h-3.5" />
+            Vai allo shop di {event.artistName}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
 
 export default function MapPage() {
+  const [, navigate] = useLocation();
   const mapRef = useRef<HTMLDivElement>(null);
   const leafletMap = useRef<any>(null);
   const markersRef = useRef<any[]>([]);
@@ -51,6 +69,10 @@ export default function MapPage() {
   const queryPos = userPos ?? { lat: 41.9028, lng: 12.4964 };
   const { data: nearby } = useListNearbyEvents({ lat: queryPos.lat, lng: queryPos.lng, radius: 300 });
   const { data: allEvents } = useListEvents({});
+
+  const goToShop = (artistId: number) => {
+    navigate(`/shop?artistId=${artistId}`);
+  };
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -72,7 +94,6 @@ export default function MapPage() {
       const center: [number, number] = [41.9028, 12.4964];
       const map = L.map(mapRef.current!, { center, zoom: 6, zoomControl: true, attributionControl: false });
 
-      // Colorful OSM tiles
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: "© OpenStreetMap contributors",
         maxZoom: 19,
@@ -92,10 +113,7 @@ export default function MapPage() {
   useEffect(() => {
     const map = leafletMap.current;
     if (!map || !ready) return;
-    const L = (window as any).L;
-    if (!L) return;
 
-    // Clear existing markers
     markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
 
@@ -109,13 +127,22 @@ export default function MapPage() {
       }
 
       (allEvents ?? []).forEach((event: EventItem) => {
+        const shopLink = event.artistId
+          ? `<a href="${BASE_URL}/shop?artistId=${event.artistId}"
+              style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;padding:4px 10px;background:#6d5dfc;color:#fff;border-radius:20px;font-size:11px;font-weight:600;text-decoration:none;">
+              🛍️ Shop
+             </a>`
+          : "";
         const m = Leaflet.circleMarker([event.lat, event.lng], {
           radius: 9, fillColor: "#f97316", fillOpacity: 0.9, color: "#fff", weight: 2,
         }).addTo(map).bindPopup(
-          `<div style="font-family:sans-serif;min-width:150px">
+          `<div style="font-family:sans-serif;min-width:160px">
             <b style="font-size:13px">${event.title}</b><br/>
-            <span style="color:#666;font-size:11px">${event.city} · ${event.date}</span><br/>
+            <span style="color:#666;font-size:11px">${event.artistName}</span><br/>
+            <span style="color:#999;font-size:11px">${event.city} · ${event.date}</span><br/>
             <span style="color:#6d5dfc;font-weight:700;font-size:12px">€${event.price.toFixed(0)}</span>
+            · <span style="color:#999;font-size:11px">${event.ticketsLeft} biglietti</span>
+            <br/>${shopLink}
           </div>`
         );
         markersRef.current.push(m);
@@ -125,7 +152,7 @@ export default function MapPage() {
 
   return (
     <div className="flex flex-col md:flex-row h-screen overflow-hidden">
-      {/* Map — half the space */}
+      {/* Map */}
       <div className="flex-1 flex flex-col min-h-0">
         <div className="px-4 pt-4 pb-2 flex items-center justify-between shrink-0">
           <div>
@@ -147,11 +174,11 @@ export default function MapPage() {
 
         <div className="px-4 pb-3 flex items-center gap-4 text-xs text-muted-foreground shrink-0">
           <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-primary inline-block" />Tu</span>
-          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-orange-500 inline-block" />Evento</span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-orange-500 inline-block" />Evento — clicca per aprire lo shop 🛍️</span>
         </div>
       </div>
 
-      {/* Events list — other half */}
+      {/* Events list */}
       <div className="flex-1 flex flex-col min-h-0 border-t md:border-t-0 md:border-l border-border">
         <div className="px-4 pt-4 pb-2 shrink-0">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-2">
@@ -167,7 +194,7 @@ export default function MapPage() {
             </div>
           )}
           {(nearby ?? []).map((item: NearbyItem) => (
-            <EventCard key={item.event.id} event={item.event} distanceKm={item.distanceKm} />
+            <EventCard key={item.event.id} event={item.event} distanceKm={item.distanceKm} onShopClick={goToShop} />
           ))}
         </div>
       </div>
