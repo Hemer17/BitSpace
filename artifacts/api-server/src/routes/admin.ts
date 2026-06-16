@@ -126,6 +126,32 @@ router.post("/admin/tour-stops", async (req, res) => {
   }
 });
 
+// Delete a tour stop (and its associated event)
+router.delete("/admin/tour-stops/:id", async (req, res) => {
+  try {
+    const user = getUser(req);
+    if (!user || user.role !== "artist") return res.status(403).json({ error: "Accesso negato" });
+
+    const id = parseInt(req.params.id);
+    const [stop] = await db.select().from(tourStopsTable).where(eq(tourStopsTable.id, id));
+    if (!stop) return res.status(404).json({ error: "Data tour non trovata" });
+
+    const [artist] = await db.select().from(artistsTable).where(eq(artistsTable.userId, user.id));
+    if (!artist || stop.artistId !== artist.id) return res.status(403).json({ error: "Non autorizzato" });
+
+    await db.delete(tourStopsTable).where(eq(tourStopsTable.id, id));
+    // Also remove the associated event (same artist + city + date)
+    const events = await db.select().from(eventsTable).where(eq(eventsTable.artistId, stop.artistId!));
+    const matching = events.find((e) => e.city === stop.city && e.date === stop.date);
+    if (matching) await db.delete(eventsTable).where(eq(eventsTable.id, matching.id));
+
+    res.status(204).end();
+  } catch (err) {
+    req.log.error({ err }, "Failed to delete tour stop");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 // Gift merch to a user
 router.post("/admin/gift-merch", async (req, res) => {
   try {

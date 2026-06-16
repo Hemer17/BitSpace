@@ -219,6 +219,41 @@ router.get("/posts/:id/comments", async (req, res) => {
   }
 });
 
+// My posts (artist only)
+router.get("/posts/mine", async (req, res) => {
+  try {
+    const user = getUser(req);
+    if (!user) return res.status(401).json({ error: "Not authenticated" });
+    const [artist] = await db.select().from(artistsTable).where(eq(artistsTable.userId, user.id));
+    if (!artist) return res.json([]);
+    const posts = await db
+      .select()
+      .from(postsTable)
+      .where(and(eq(postsTable.artistId, artist.id), eq(postsTable.isShared, false)));
+    res.json(posts.reverse());
+  } catch (err) {
+    req.log.error({ err }, "Failed to get my posts");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
+// Delete a post (artist only, own posts)
+router.delete("/posts/:id", async (req, res) => {
+  try {
+    const user = getUser(req);
+    if (!user) return res.status(401).json({ error: "Not authenticated" });
+    const id = parseInt(req.params.id);
+    const [post] = await db.select().from(postsTable).where(eq(postsTable.id, id));
+    if (!post) return res.status(404).json({ error: "Post non trovato" });
+    if (post.userId !== user.id) return res.status(403).json({ error: "Non autorizzato" });
+    await db.delete(postsTable).where(eq(postsTable.id, id));
+    res.status(204).end();
+  } catch (err) {
+    req.log.error({ err }, "Failed to delete post");
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 router.post("/posts/:id/comments", async (req, res) => {
   try {
     const user = getUser(req);

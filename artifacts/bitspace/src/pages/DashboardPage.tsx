@@ -49,6 +49,29 @@ export default function DashboardPage() {
   const [section, setSection] = useState<Section>("overview");
   const [users, setUsers] = useState<any[]>([]);
 
+  // Load posts for the post management section
+  const [myPosts, setMyPosts] = useState<any[]>([]);
+  const [postsLoading, setPostsLoading] = useState(false);
+
+  const loadMyPosts = async () => {
+    setPostsLoading(true);
+    const r = await fetch(`${BASE_URL}/api/posts/mine`);
+    if (r.ok) { const d = await r.json(); Array.isArray(d) && setMyPosts(d); }
+    setPostsLoading(false);
+  };
+
+  const handleDeletePost = async (id: number) => {
+    await fetch(`${BASE_URL}/api/posts/${id}`, { method: "DELETE" });
+    setMyPosts((p) => p.filter((x) => x.id !== id));
+    refetchStats();
+  };
+
+  const handleDeleteTourStop = async (id: number) => {
+    await fetch(`${BASE_URL}/api/admin/tour-stops/${id}`, { method: "DELETE" });
+    refetchStats();
+    toast({ title: "Data tour rimossa" });
+  };
+
   // Load followers for the follower-block section
   useEffect(() => {
     if (section === "ban") {
@@ -56,6 +79,7 @@ export default function DashboardPage() {
     }
     if (section === "post") {
       fetch(`${BASE_URL}/api/songs/me`).then((r) => r.ok ? r.json() : []).then((d) => Array.isArray(d) && setPostMySongs(d));
+      loadMyPosts();
     }
   }, [section]);
 
@@ -467,13 +491,28 @@ export default function DashboardPage() {
 
             <div className="space-y-2">
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">Date ({stats?.tourDates ?? 0})</h3>
+              {(stats?.upcomingEvents ?? []).length === 0 && (
+                <p className="text-sm text-muted-foreground py-4 text-center">Nessuna data tour aggiunta</p>
+              )}
               {(stats?.upcomingEvents ?? []).map((stop: any) => (
-                <div key={stop.id} className="bg-card border border-border rounded-xl px-4 py-3 flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">{stop.city} – {stop.venue}</p>
+                <div key={stop.id} className="bg-card border border-border rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{stop.city} – {stop.venue}</p>
                     <p className="text-xs text-muted-foreground">{stop.date}</p>
                   </div>
-                  <span className="text-xs bg-primary/15 text-primary px-2 py-0.5 rounded-full">In vendita</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={cn("text-xs font-medium px-2.5 py-1 rounded-full",
+                      stop.status === "sold_out" ? "bg-destructive/15 text-destructive" :
+                      stop.status === "presale" ? "bg-amber-500/15 text-amber-400" : "bg-primary/15 text-primary")}>
+                      {stop.status === "sold_out" ? "Esaurito" : stop.status === "presale" ? "Presale" : "In vendita"}
+                    </span>
+                    <button
+                      onClick={() => handleDeleteTourStop(stop.id)}
+                      className="text-muted-foreground hover:text-destructive transition-colors p-1"
+                      title="Rimuovi data">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -482,6 +521,7 @@ export default function DashboardPage() {
 
         {/* NUOVO POST */}
         {section === "post" && (
+          <div className="space-y-5">
           <div className="bg-card border border-border rounded-2xl p-4 space-y-3">
             <h3 className="text-sm font-semibold flex items-center gap-2"><Send className="w-4 h-4" />Crea post</h3>
             <div>
@@ -526,6 +566,43 @@ export default function DashboardPage() {
               className="w-full bg-primary text-white rounded-xl py-2.5 text-sm font-semibold hover:bg-primary/90 disabled:opacity-50 transition-colors">
               {postLoading ? "Pubblicazione..." : "Pubblica post"}
             </button>
+          </div>
+
+          {/* I miei post */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
+              I tuoi post ({myPosts.length})
+            </h3>
+            {postsLoading && (
+              <div className="space-y-2">{[1,2,3].map((i) => <div key={i} className="h-16 rounded-xl bg-card border border-border animate-pulse" />)}</div>
+            )}
+            {!postsLoading && myPosts.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-6">Nessun post pubblicato</p>
+            )}
+            {myPosts.map((post: any) => (
+              <div key={post.id} className="bg-card border border-border rounded-xl px-4 py-3 flex items-start gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className={cn("text-xs px-2 py-0.5 rounded-full font-medium",
+                      post.type === "release" ? "bg-primary/15 text-primary" :
+                      post.type === "announcement" ? "bg-amber-500/15 text-amber-400" :
+                      post.type === "tour" ? "bg-emerald-500/15 text-emerald-400" :
+                      "bg-secondary text-muted-foreground")}>
+                      {post.type}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{post.timeAgo}</span>
+                  </div>
+                  <p className="text-sm line-clamp-2 text-foreground/80">{post.content}</p>
+                </div>
+                <button
+                  onClick={() => handleDeletePost(post.id)}
+                  className="text-muted-foreground hover:text-destructive transition-colors p-1 shrink-0 mt-0.5"
+                  title="Elimina post">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
           </div>
         )}
 

@@ -69,15 +69,18 @@ export default function ShopPage() {
   const [buyingMerchId, setBuyingMerchId] = useState<number | null>(null);
   const [resaleTicket, setResaleTicket] = useState<any>(null);
   const [shopData, setShopData] = useState<{ events: any[]; merch: any[] } | null>(null);
-  const [tab, setTab] = useState<"biglietti" | "merch" | "miei">(filterArtistId ? "merch" : "biglietti");
+  const [tab, setTab] = useState<"biglietti" | "merch" | "miei">("biglietti");
+  const [artists, setArtists] = useState<any[]>([]);
+  const [selectedArtistId, setSelectedArtistId] = useState<number | null>(filterArtistId);
 
   useEffect(() => {
     fetch(`${BASE_URL}/api/shop`).then((r) => r.json()).then(setShopData).catch(() => { });
+    fetch(`${BASE_URL}/api/artists`).then((r) => r.json()).then((d) => Array.isArray(d) && setArtists(d)).catch(() => { });
   }, []);
 
-  // When artistId filter is set from map, switch to merch tab automatically
+  // Sync selectedArtist from URL param on load
   useEffect(() => {
-    if (filterArtistId) setTab("merch");
+    if (filterArtistId) setSelectedArtistId(filterArtistId);
   }, [filterArtistId]);
 
   const handleBuy = (eventId: number, eventTitle: string) => {
@@ -131,37 +134,61 @@ export default function ShopPage() {
   const rawEvents = shopData?.events ?? events ?? [];
   const rawMerch = shopData?.merch ?? [];
 
-  const displayEvents = filterArtistId
-    ? rawEvents.filter((e: any) => e.artistId === filterArtistId)
+  const displayEvents = selectedArtistId
+    ? rawEvents.filter((e: any) => e.artistId === selectedArtistId)
     : rawEvents;
-  const displayMerch = filterArtistId
-    ? rawMerch.filter((m: any) => m.artistId === filterArtistId)
+  const displayMerch = selectedArtistId
+    ? rawMerch.filter((m: any) => m.artistId === selectedArtistId)
     : rawMerch;
 
-  // Get artist name for filter header
-  const filteredArtistName = filterArtistId
-    ? (rawMerch.find((m: any) => m.artistId === filterArtistId)?.artistName
-      ?? rawEvents.find((e: any) => e.artistId === filterArtistId)?.artistName
-      ?? "Artista")
+  const selectedArtistName = selectedArtistId
+    ? (artists.find((a: any) => a.id === selectedArtistId)?.name ?? "Artista")
     : null;
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6 pb-24 md:pb-6">
-      {filterArtistId ? (
-        <div className="flex items-center gap-3 mb-5">
+      <div className="mb-5">
+        <h1 className="text-2xl font-bold mb-1">Shop</h1>
+        <p className="text-sm text-muted-foreground">Biglietti e merchandise degli artisti che segui</p>
+      </div>
+
+      {/* Artist filter pills */}
+      {artists.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto pb-1 mb-4 scrollbar-none">
           <button
-            onClick={() => navigate("/shop")}
-            className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors">
-            <ArrowLeft className="w-4 h-4" />Tutto lo shop
+            onClick={() => { setSelectedArtistId(null); navigate("/shop"); }}
+            className={cn("px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0 transition-colors border",
+              selectedArtistId === null
+                ? "bg-primary text-white border-primary"
+                : "bg-secondary text-muted-foreground border-border hover:text-foreground")}>
+            Tutti
           </button>
-          <span className="text-muted-foreground/40">·</span>
-          <h1 className="text-xl font-bold truncate">🎨 {filteredArtistName}</h1>
+          {artists.map((a: any) => (
+            <button
+              key={a.id}
+              onClick={() => { setSelectedArtistId(a.id); navigate(`/shop?artistId=${a.id}`); }}
+              className={cn("flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0 transition-colors border",
+                selectedArtistId === a.id
+                  ? "bg-primary text-white border-primary"
+                  : "bg-secondary text-muted-foreground border-border hover:text-foreground")}>
+              {a.avatarUrl
+                ? <img src={a.avatarUrl} className="w-4 h-4 rounded-full object-cover" />
+                : <span className="w-4 h-4 rounded-full bg-primary/20 text-primary flex items-center justify-center text-[9px] font-bold">{a.avatarInitials ?? a.name?.[0]}</span>
+              }
+              {a.name}
+            </button>
+          ))}
         </div>
-      ) : (
-        <>
-          <h1 className="text-2xl font-bold mb-1">Shop</h1>
-          <p className="text-sm text-muted-foreground mb-5">Biglietti e merchandise degli artisti che segui</p>
-        </>
+      )}
+
+      {selectedArtistName && (
+        <div className="mb-4 flex items-center gap-2">
+          <span className="text-sm font-semibold text-primary">{selectedArtistName}</span>
+          <button onClick={() => { setSelectedArtistId(null); navigate("/shop"); }}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+            <ArrowLeft className="w-3 h-3" />mostra tutti
+          </button>
+        </div>
       )}
 
       <div className="flex gap-2 mb-6">
